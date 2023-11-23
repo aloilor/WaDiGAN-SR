@@ -26,7 +26,7 @@ def create_dataset(args):
                 r_resolution=args.h_resolution,
                 split="train",
                 data_len=-1,
-                need_LR=True
+                need_LR=False
                 )
 
     return dataset

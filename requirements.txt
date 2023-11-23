@@ -1,3 +1,4 @@
+torchvision
 pillow
 matplotlib
 tensorboard
@@ -7,3 +8,10 @@ scipy
 ninja
 einops
 PyWavelets
+numpy
+pandas
+tqdm
+opencv-python
+
+
+
