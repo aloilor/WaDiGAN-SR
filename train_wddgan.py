@@ -170,6 +170,7 @@ def train(rank, gpu, args):
                 xlh, xhl, xhh = torch.unbind(xh[0], dim=2)
 
             real_data = torch.cat([xll, xlh, xhl, xhh], dim=1)  # [b, 12, h, w]
+            print("hr wavelet size: " , real_data.size())
 
             # normalize real_data
             real_data = real_data / 2.0  # [-1, 1]
@@ -248,7 +249,7 @@ def train(rank, gpu, args):
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 4 == 0:
+            if epoch % 2 == 0:
                 x_pos_sample = x_pos_sample[:, :3]
                 torchvision.utils.save_image(x_pos_sample, os.path.join(
                     exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
@@ -405,9 +406,9 @@ if __name__ == '__main__':
     parser.add_argument("--no_use_residual", action="store_true")
 
     parser.add_argument('--save_content', action='store_true', default=False)
-    parser.add_argument('--save_content_every', type=int, default=4,
+    parser.add_argument('--save_content_every', type=int, default=2,
                         help='save content for resuming every x epochs')
-    parser.add_argument('--save_ckpt_every', type=int,default=4, 
+    parser.add_argument('--save_ckpt_every', type=int,default=2, 
                         help='save ckpt every x epochs')
 
     # ddp
