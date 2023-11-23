@@ -152,15 +152,13 @@ def train(rank, gpu, args):
             for p in netG.parameters():
                 p.requires_grad = False
 
-            hr_image = data_dict['HR']
+            x = data_dict['HR'] # hr_img
             sr_image = data_dict['SR']
             sample_index = data_dict['Index']
             print("hr_image:" , hr_image.size())
             print("sr_image:" , sr_image.size())
             print("sample_index:" , sample_index.size())
-
-            exit()
-
+            
             # sample from p(x_0)
             x0 = x.to(device, non_blocking=True)
 
