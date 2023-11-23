@@ -240,7 +240,7 @@ def train(rank, gpu, args):
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 10 == 0:
+            if epoch % 4 == 0:
                 x_pos_sample = x_pos_sample[:, :3]
                 torchvision.utils.save_image(x_pos_sample, os.path.join(
                     exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
@@ -280,6 +280,7 @@ def train(rank, gpu, args):
                     torch.save(content, os.path.join(exp_path, 'content.pth'))
 
             if epoch % args.save_ckpt_every == 0:
+                print("Saving checkpoint.")
                 if args.use_ema:
                     optimizerG.swap_parameters_with_ema(
                         store_params_in_ema=True)
@@ -396,10 +397,10 @@ if __name__ == '__main__':
     parser.add_argument("--no_use_residual", action="store_true")
 
     parser.add_argument('--save_content', action='store_true', default=False)
-    parser.add_argument('--save_content_every', type=int, default=50,
+    parser.add_argument('--save_content_every', type=int, default=4,
                         help='save content for resuming every x epochs')
     parser.add_argument('--save_ckpt_every', type=int,
-                        default=25, help='save ckpt every x epochs')
+                        default=4, help='save ckpt every x epochs')
 
     # ddp
     parser.add_argument('--num_proc_node', type=int, default=1,
