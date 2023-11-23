@@ -155,9 +155,9 @@ def train(rank, gpu, args):
             hr_image = data_dict['HR']
             sr_image = data_dict['SR']
             sample_index = data_dict['Index']
-            print("hr_image:" , hr_image.size)
-            print("sr_image:" , sr_image.size)
-            print("sample_index:" , sample_index.size)
+            print("hr_image:" , hr_image.size())
+            print("sr_image:" , sr_image.size())
+            print("sample_index:" , sample_index.size())
 
             exit()
 
