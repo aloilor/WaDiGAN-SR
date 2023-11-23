@@ -75,7 +75,6 @@ totensor = torchvision.transforms.ToTensor()
 hflip = torchvision.transforms.RandomHorizontalFlip()
 def transform_augment(img_list, split='val', min_max=(0, 1)):    
     imgs = [totensor(img) for img in img_list]
-    print([img.size() for img in imgs])
     if split == 'train':
         imgs = torch.stack(imgs, 0)
         imgs = hflip(imgs)
