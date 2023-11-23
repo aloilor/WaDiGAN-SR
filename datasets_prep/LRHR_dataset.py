@@ -3,7 +3,7 @@ import lmdb
 from PIL import Image
 from torch.utils.data import Dataset
 import random
-import util as Util
+import datasets_prep.util as Util
 
 def num_samples(dataset, train):
     if dataset == 'celeba':
