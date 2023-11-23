@@ -27,7 +27,7 @@ def image_convert_bytes(img):
     return buffer.getvalue()
 
 
-def resize_multiple(img, sizes=(16, 128), resample=Image.BICUBIC, lmdb_save=False):
+def resize_multiple(img, sizes=(16, 64), resample=Image.BICUBIC, lmdb_save=False):
     lr_img = resize_and_convert(img, sizes[0], resample)
     hr_img = resize_and_convert(img, sizes[1], resample)
     sr_img = resize_and_convert(lr_img, sizes[1], resample)
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     parser.add_argument('--out', '-o', type=str,
                         default='./dataset/celebahq')
 
-    parser.add_argument('--size', type=str, default='64,512')
+    parser.add_argument('--size', type=str, default='16,64')
     parser.add_argument('--n_worker', type=int, default=3)
     parser.add_argument('--resample', type=str, default='bicubic')
     # default save in png format

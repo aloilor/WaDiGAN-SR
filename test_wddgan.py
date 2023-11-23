@@ -39,7 +39,7 @@ def sample_and_test(args):
     print("GEN: {}".format(gen_net))
 
     netG = gen_net(args).to(device)
-    ckpt = torch.load('./saved_info/wdd_gan/{}/{}/netG_{}.pth'.format(
+    ckpt = torch.load('/content/gdrive/MyDrive/wave-diff-sr/saved_info/wdd_gan/{}/{}/netG_{}.pth'.format(
         args.dataset, args.exp, args.epoch_id), map_location=device)
 
     # loading weights from ddp in single gpu

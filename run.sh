@@ -115,7 +115,7 @@ else
 			--current_resolution 256 --attn_resolutions 16 \
 			--net_type wavelet \
 			--use_pytorch_wavelet \
-			--batch_size 100 \
+			--batch_size 10 \
 			# --compute_fid --real_img_dir pytorch_fid/celebahq_512_stat.npy \
 			# --measure_time --batch_size 25 \
 
