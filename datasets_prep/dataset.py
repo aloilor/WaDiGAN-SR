@@ -5,9 +5,6 @@ import torchvision.transforms as transforms
 from torchvision import datasets
 from torchvision.datasets import CIFAR10, STL10
 
-from .lmdb_datasets import LMDBDataset
-from .lsun import LSUN
-from .stackmnist_data import StackedMNIST, _data_transforms_stacked_mnist
 from .LRHR_dataset import LRHRDataset
 
 def num_samples(dataset, train):

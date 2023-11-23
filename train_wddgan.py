@@ -140,7 +140,7 @@ def train(rank, gpu, args):
         global_step, epoch, init_epoch = 0, 0, 0
 
 
-    print("Starting the training loop. \n")
+    print("Starting training loop. \n")
     for epoch in range(init_epoch, args.num_epoch + 1):
         train_sampler.set_epoch(epoch)
 
