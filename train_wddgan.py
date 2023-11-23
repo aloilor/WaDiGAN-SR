@@ -152,7 +152,13 @@ def train(rank, gpu, args):
             for p in netG.parameters():
                 p.requires_grad = False
 
-            print(data_dict)
+            hr_image = batch['HR']
+            sr_image = batch['SR']
+            sample_index = batch['Index']
+            print("hr_image:" + hr_image.size)
+            print("sr_image:" + sr_image.size)
+            print("sample_index:" + sample_index.size)
+
             exit()
 
             # sample from p(x_0)
