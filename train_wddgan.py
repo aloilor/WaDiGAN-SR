@@ -139,20 +139,21 @@ def train(rank, gpu, args):
     else:
         global_step, epoch, init_epoch = 0, 0, 0
 
-    
 
     print("Starting the training loop. \n")
-    exit()
     for epoch in range(init_epoch, args.num_epoch + 1):
         train_sampler.set_epoch(epoch)
 
-        for iteration, (x, y) in enumerate(data_loader):
+        for iteration, data_dict in enumerate(data_loader):
             for p in netD.parameters():
                 p.requires_grad = True
             netD.zero_grad()
 
             for p in netG.parameters():
                 p.requires_grad = False
+
+            print(data_dict) 
+            exit()
 
             # sample from p(x_0)
             x0 = x.to(device, non_blocking=True)
@@ -224,7 +225,7 @@ def train(rank, gpu, args):
             output = netD(x_pos_sample, t, x_tp1.detach()).view(-1)
             errG = F.softplus(-output).mean()
 
-            # reconstructior loss
+            # reconstruction loss
             if args.rec_loss:
                 rec_loss = F.l1_loss(x_0_predict, real_data)
                 errG = errG + rec_loss
@@ -239,7 +240,6 @@ def train(rank, gpu, args):
                         epoch, iteration, errG.item(), errD.item()))
 
         if not args.no_lr_decay:
-
             schedulerG.step()
             schedulerD.step()
 
