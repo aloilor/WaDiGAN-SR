@@ -155,9 +155,6 @@ def train(rank, gpu, args):
             x = data_dict['HR'] # hr_img
             sr_image = data_dict['SR']
             sample_index = data_dict['Index']
-            print("hr_image:" , x.size())
-            print("sr_image:" , sr_image.size())
-            print("sample_index:" , sample_index.size())
 
             # sample from p(x_0)
             x0 = x.to(device, non_blocking=True)
@@ -169,9 +166,8 @@ def train(rank, gpu, args):
                 xll, xh = dwt(x0)  # [b, 3, h, w], [b, 3, 3, h, w]
                 xlh, xhl, xhh = torch.unbind(xh[0], dim=2)
 
-            real_data = torch.cat([xll, xlh, xhl, xhh], dim=1)  # [b, 12, h, w]
-            print("hr wavelet size: " , real_data.size())
-
+            real_data = torch.cat([xll, xlh, xhl, xhh], dim=1)  # [b, 12, h/2, w/2]
+            
             # normalize real_data
             real_data = real_data / 2.0  # [-1, 1]
 
