@@ -17,7 +17,6 @@ def num_samples(dataset, train):
 
 
 def create_dataset(args):
-    print("Loading dataset")
     if args.dataset == 'celebahq_16_64':
         dataset = LRHRDataset(
                 dataroot=args.datadir,

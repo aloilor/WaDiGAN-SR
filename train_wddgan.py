@@ -407,8 +407,8 @@ if __name__ == '__main__':
     parser.add_argument('--save_content', action='store_true', default=False)
     parser.add_argument('--save_content_every', type=int, default=4,
                         help='save content for resuming every x epochs')
-    parser.add_argument('--save_ckpt_every', type=int,
-                        default=4, help='save ckpt every x epochs')
+    parser.add_argument('--save_ckpt_every', type=int,default=4, 
+                        help='save ckpt every x epochs')
 
     # ddp
     parser.add_argument('--num_proc_node', type=int, default=1,
