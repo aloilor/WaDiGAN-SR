@@ -26,7 +26,7 @@ if [[ $MODE == train ]]; then
 				--num_channels_dae 64 --ch_mult 1 2 2 2 4 --num_timesteps 2 \
 				--num_res_blocks 2 --batch_size 32 --num_epoch 500 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
 				--z_emb_dim 256 --lr_d 1e-4 --lr_g 2e-4 --lazy_reg 10 --save_content \
-				--datadir /content/gdrive/MyDrive/datasets/celeba_16_64/ \
+				--datadir /content/gdrive/MyDrive/srwavediff/datasets/celeba_16_64/ \
 				--master_port $MASTER_PORT \
 				--current_resolution 64 --attn_resolution 16 --num_disc_layers 5 --rec_loss \
 				--net_type wavelet \
