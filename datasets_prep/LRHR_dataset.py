@@ -3,11 +3,19 @@ import lmdb
 from PIL import Image
 from torch.utils.data import Dataset
 import random
-import data.util as Util
+import util as Util
+
+def num_samples(dataset, train):
+    if dataset == 'celeba':
+        return 27000 if train else 3000
+    elif dataset == 'ffhq':
+        return 63000 if train else 7000
+    else:
+        raise NotImplementedError('dataset %s is unknown' % dataset)
 
 
 class LRHRDataset(Dataset):
-    def __init__(self, dataroot, datatype, l_resolution=16, r_resolution=128, split='train', data_len=-1, need_LR=False):
+    def __init__(self, dataroot, datatype, l_resolution=16, r_resolution=64, split='train', data_len=-1, need_LR=False):
         self.datatype = datatype
         self.l_res = l_resolution
         self.r_res = r_resolution
@@ -15,6 +23,7 @@ class LRHRDataset(Dataset):
         self.need_LR = need_LR
         self.split = split
 
+        # open lmdb 
         if datatype == 'lmdb':
             self.env = lmdb.open(dataroot, readonly=True, lock=False,
                                  readahead=False, meminit=False)
@@ -50,6 +59,7 @@ class LRHRDataset(Dataset):
         img_LR = None
 
         if self.datatype == 'lmdb':
+            # retrieves images bytes
             with self.env.begin(write=False) as txn:
                 hr_img_bytes = txn.get(
                     'hr_{}_{}'.format(

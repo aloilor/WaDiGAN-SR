@@ -64,7 +64,7 @@ def train(rank, gpu, args):
     print("GEN: {}, DISC: {}".format(gen_net, disc_net))
     netG = gen_net(args).to(device)
 
-    if args.dataset in ['cifar10', 'stl10']:
+    if args.dataset in ['cifar10', 'stl10', 'celebahq_16_32']:
         netD = disc_net[0](nc=2 * args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
@@ -105,7 +105,7 @@ def train(rank, gpu, args):
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
     exp = args.exp
-    parent_dir = "./saved_info/wdd_gan/{}".format(args.dataset)
+    parent_dir = "/content/gdrive/MyDrive/saved_info/srwavediff/{}".format(args.dataset)
 
     exp_path = os.path.join(parent_dir, exp)
     if rank == 0:
@@ -139,6 +139,10 @@ def train(rank, gpu, args):
     else:
         global_step, epoch, init_epoch = 0, 0, 0
 
+    
+
+    print("Starting the training loop. \n")
+    exit()
     for epoch in range(init_epoch, args.num_epoch + 1):
         train_sampler.set_epoch(epoch)
 
@@ -417,6 +421,13 @@ if __name__ == '__main__':
                         help='port for master')
     parser.add_argument('--num_workers', type=int, default=4,
                         help='num_workers')
+
+    # super resolution
+    parser.add_argument('--l_resolution', type=int, default=16,
+                        help='low resolution need to super_resolution')
+    parser.add_argument('--h_resolution', type=int, default=64,
+                        help='high resolution need to super_resolution')
+    
 
     args = parser.parse_args()
 
