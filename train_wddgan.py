@@ -215,7 +215,7 @@ def train(rank, gpu, args):
 
             # sr and x(t+1) concat:
             x_tp1 = torch.add(sr_data, x_tp1)
-            x_tp1 = torch.div(tp_1, 2)
+            x_tp1 = torch.div(x_tp1, 2)
             print(x_tp1.size())
 
 
