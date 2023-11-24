@@ -215,12 +215,14 @@ def train(rank, gpu, args):
                 if global_step % args.lazy_reg == 0:
                     grad_penalty_call(args, D_real, x_t)
 
+            print("size of concatenation: ", torch.cat([x_tp1, sr_data],dim=1))
+
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
             x_0_predict = netG(torch.cat([x_tp1, sr_data],dim=1).detach(), t, latent_z)
 
             print("x0_prediction size =", x_0_predict.size() )
-
+            exit()
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
 
             output = netD(x_pos_sample, t, x_tp1.detach()).view(-1)
