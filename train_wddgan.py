@@ -105,7 +105,7 @@ def train(rank, gpu, args):
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
     exp = args.exp
-    parent_dir = "/content/gdrive/MyDrive/saved_info/srwavediff/{}".format(args.dataset)
+    parent_dir = "/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}".format(args.dataset)
 
     exp_path = os.path.join(parent_dir, exp)
     if rank == 0:
@@ -153,12 +153,13 @@ def train(rank, gpu, args):
                 p.requires_grad = False
 
             x = data_dict['HR'] # hr_img
-            sr_image = data_dict['SR']
+            sr_image = data_dict['SR'] # sr_img - bicubic interpolated
             sample_index = data_dict['Index']
 
             # sample from p(x_0)
             x0 = x.to(device, non_blocking=True)
 
+            # wavelet transform x0 - hr images
             if not args.use_pytorch_wavelet:
                 for i in range(num_levels):
                     xll, xlh, xhl, xhh = dwt(x0)
@@ -167,12 +168,33 @@ def train(rank, gpu, args):
                 xlh, xhl, xhh = torch.unbind(xh[0], dim=2)
 
             real_data = torch.cat([xll, xlh, xhl, xhh], dim=1)  # [b, 12, h/2, w/2]
-            
+
             # normalize real_data
             real_data = real_data / 2.0  # [-1, 1]
 
             assert -1 <= real_data.min() < 0
             assert 0 < real_data.max() <= 1
+
+            # sr images
+            sr = sr_image.to(device, non_blocking=True)
+        
+            # wavelet transform sr images
+            if not args.use_pytorch_wavelet:
+                for i in range(num_levels):
+                    srll, srlh, srhl, srhh = dwt(sr)
+            else:
+                srll, srh = dwt(sr)  # [b, 3, h, w], [b, 3, 3, h, w]
+                srlh, srhl, srhh = torch.unbind(srh[0], dim=2)
+            
+            sr_data = torch.cat([srll, srlh, srhl, srhh], dim=1) # [b, 12, h/2, w/2]
+
+            # normalize sr_data
+            sr_data = sr_data / 2.0  # [-1, 1]
+
+            assert -1 <= sr_data.min() < 0
+            assert 0 < sr_data.max() <= 1
+
+            print("sr_wavelet size: ", sr_data.size())
 
             # sample t
             t = torch.randint(0, args.num_timesteps,
@@ -195,7 +217,10 @@ def train(rank, gpu, args):
 
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
-            x_0_predict = netG(x_tp1.detach(), t, latent_z)
+            x_0_predict = netG(torch.cat([x_tp1, sr_data],dim=1).detach(), t, latent_z)
+
+            print("x0_prediction size =", x_0_predict.size() )
+
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
 
             output = netD(x_pos_sample, t, x_tp1.detach()).view(-1)
