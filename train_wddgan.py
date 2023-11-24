@@ -220,27 +220,6 @@ def train(rank, gpu, args):
             x_tp1_sr = torch.add(sr_data, x_tp1)
             x_tp1_sr = torch.div(x_tp1_sr, 2)
 
-            x_tp1_sr *= 2
-            real_data *= 2
-            if not args.use_pytorch_wavelet:
-                x_tp1_sr = iwt(
-                    x_tp1_sr[:, :3], x_tp1_sr[:, 3:6], x_tp1_sr[:, 6:9], x_tp1_sr[:, 9:12])
-                real_data = iwt(
-                    real_data[:, :3], real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12])
-
-            x_tp1_sr = (torch.clamp(x_tp1_sr, -1, 1) + 1) / 2  # 0-1
-            real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
-
-            torchvision.utils.save_image(sr_image, os.path.join(
-                exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
-
-            torchvision.utils.save_image(x_tp1_sr, os.path.join(
-                exp_path, 'x_t_concat_epoch_{}.png'.format(epoch)), normalize=True)
-
-            torchvision.utils.save_image(real_data, os.path.join(
-                exp_path, 'real_data_epoch_{}.png'.format(epoch)))
-
-            exit()
 
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
@@ -297,50 +276,44 @@ def train(rank, gpu, args):
 
         if rank == 0:
             if epoch % 2 == 0:
-                x_pos_sample = x_pos_sample[:, :3]
 
-
-                # saving SR images for reference 
+                # saving SR images 
                 torchvision.utils.save_image(sr_image, os.path.join(
                     exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
 
+                # saving predicted samples
+                torchvision.utils.save_image(x_0_predict[:, :3], os.path.join(
+                    exp_path, 'x0_prediction_epoch_{}.png'.format(epoch)), normalize=True)
+
                 # saving posterior samples 
+                x_pos_sample = x_pos_sample[:, :3]
                 torchvision.utils.save_image(x_pos_sample, os.path.join(
                     exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
 
-                torchvision.utils.save_image(real_data, os.path.join(
-                    exp_path, 'real_data_epoch_{}.png'.format(epoch)))
+                # x_t_1 = torch.randn_like(real_data)
+                # fake_sample = sample_from_model(
+                #     pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
 
+                # fake_sample *= 2
+                real_data *= 2
+                if not args.use_pytorch_wavelet:
+                    # fake_sample = iwt(
+                    #     fake_sample[:, :3], fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12])
+                    real_data = iwt(
+                        real_data[:, :3], real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12])
+                else:
+                    # fake_sample = iwt((fake_sample[:, :3], [torch.stack(
+                    #     (fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12]), dim=2)]))
+                    real_data = iwt((real_data[:, :3], [torch.stack(
+                        (real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12]), dim=2)]))
 
-                torchvision.utils.save_image(x_pos_sample, os.path.join(
-                    exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
+                # fake_sample = (torch.clamp(fake_sample, -1, 1) + 1) / 2  # 0-1
+                real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
 
-
-
-            x_t_1 = torch.randn_like(real_data)
-            fake_sample = sample_from_model(
-                pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
-
-            fake_sample *= 2
-            real_data *= 2
-            if not args.use_pytorch_wavelet:
-                fake_sample = iwt(
-                    fake_sample[:, :3], fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12])
-                real_data = iwt(
-                    real_data[:, :3], real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12])
-            else:
-                fake_sample = iwt((fake_sample[:, :3], [torch.stack(
-                    (fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12]), dim=2)]))
-                real_data = iwt((real_data[:, :3], [torch.stack(
-                    (real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12]), dim=2)]))
-
-            # fake_sample = (torch.clamp(fake_sample, -1, 1) + 1) / 2  # 0-1
-            real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
-
-            # torchvision.utils.save_image(fake_sample, os.path.join(
-            #     exp_path, 'sample_discrete_epoch_{}.png'.format(epoch)))
-            torchvision.utils.save_image(
-                real_data, os.path.join(exp_path, 'real_data_epoch_{}.png'.format(epoch)))
+                # torchvision.utils.save_image(fake_sample, os.path.join(
+                #      exp_path, 'sample_discrete_epoch_{}.png'.format(epoch)))
+                torchvision.utils.save_image(
+                    real_data, os.path.join(exp_path, 'real_data_epoch_{}.png'.format(epoch)))
 
             if args.save_content:
                 if epoch % args.save_content_every == 0:
