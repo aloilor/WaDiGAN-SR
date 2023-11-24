@@ -145,19 +145,22 @@ def train(rank, gpu, args):
         train_sampler.set_epoch(epoch)
 
         for iteration, data_dict in enumerate(data_loader):
+            
+            # update disc
             for p in netD.parameters():
                 p.requires_grad = True
             netD.zero_grad()
-
+            
+            #generator frozen
             for p in netG.parameters():
                 p.requires_grad = False
 
-            x = data_dict['HR'] # hr_img
+            hr_image = data_dict['HR'] # hr_img
             sr_image = data_dict['SR'] # sr_img - bicubic interpolated
             sample_index = data_dict['Index']
 
             # sample from p(x_0)
-            x0 = x.to(device, non_blocking=True)
+            x0 = hr_image.to(device, non_blocking=True)
 
             # wavelet transform x0 - hr images
             if not args.use_pytorch_wavelet:
@@ -177,7 +180,7 @@ def train(rank, gpu, args):
 
             # sr images
             sr = sr_image.to(device, non_blocking=True)
-        
+            
             # wavelet transform sr images
             if not args.use_pytorch_wavelet:
                 for i in range(num_levels):
@@ -214,16 +217,36 @@ def train(rank, gpu, args):
                     grad_penalty_call(args, D_real, x_t)
 
             # sr and x(t+1) concat:
-            x_tp1 = torch.add(sr_data, x_tp1)
-            x_tp1 = torch.div(x_tp1, 2)
-            print(x_tp1.size())
+            x_tp1_sr = torch.add(sr_data, x_tp1)
+            x_tp1_sr = torch.div(x_tp1_sr, 2)
 
+            x_tp1_sr *= 2
+            real_data *= 2
+            if not args.use_pytorch_wavelet:
+                x_tp1_sr = iwt(
+                    x_tp1_sr[:, :3], x_tp1_sr[:, 3:6], x_tp1_sr[:, 6:9], x_tp1_sr[:, 9:12])
+                real_data = iwt(
+                    real_data[:, :3], real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12])
+
+            x_tp1_sr = (torch.clamp(x_tp1_sr, -1, 1) + 1) / 2  # 0-1
+            real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
+
+            torchvision.utils.save_image(sr_image, os.path.join(
+                exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
+
+            torchvision.utils.save_image(x_tp1_sr, os.path.join(
+                exp_path, 'x_t_concat_epoch_{}.png'.format(epoch)), normalize=True)
+
+            torchvision.utils.save_image(real_data, os.path.join(
+                exp_path, 'real_data_epoch_{}.png'.format(epoch)))
+
+            exit()
 
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
-            x_0_predict = netG(x_tp1.detach(), t, latent_z)
+            x_0_predict = netG(x_tp1_sr.detach(), t, latent_z)
 
-            x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
+            x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t) # x(t-1) fake 
 
             output = netD(x_pos_sample, t, x_tp1.detach()).view(-1)
             errD_fake = F.softplus(output).mean()
@@ -234,10 +257,11 @@ def train(rank, gpu, args):
             # Update D
             optimizerD.step()
 
-            # update G
+            # frozen disc
             for p in netD.parameters():
                 p.requires_grad = False
 
+            # update gen
             for p in netG.parameters():
                 p.requires_grad = True
             netG.zero_grad()
@@ -274,8 +298,24 @@ def train(rank, gpu, args):
         if rank == 0:
             if epoch % 2 == 0:
                 x_pos_sample = x_pos_sample[:, :3]
+
+
+                # saving SR images for reference 
+                torchvision.utils.save_image(sr_image, os.path.join(
+                    exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
+
+                # saving posterior samples 
                 torchvision.utils.save_image(x_pos_sample, os.path.join(
                     exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
+
+                torchvision.utils.save_image(real_data, os.path.join(
+                    exp_path, 'real_data_epoch_{}.png'.format(epoch)))
+
+
+                torchvision.utils.save_image(x_pos_sample, os.path.join(
+                    exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
+
+
 
             x_t_1 = torch.randn_like(real_data)
             fake_sample = sample_from_model(
@@ -294,13 +334,13 @@ def train(rank, gpu, args):
                 real_data = iwt((real_data[:, :3], [torch.stack(
                     (real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12]), dim=2)]))
 
-            fake_sample = (torch.clamp(fake_sample, -1, 1) + 1) / 2  # 0-1
+            # fake_sample = (torch.clamp(fake_sample, -1, 1) + 1) / 2  # 0-1
             real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
 
-            torchvision.utils.save_image(fake_sample, os.path.join(
-                exp_path, 'sample_discrete_epoch_{}.png'.format(epoch)))
+            # torchvision.utils.save_image(fake_sample, os.path.join(
+            #     exp_path, 'sample_discrete_epoch_{}.png'.format(epoch)))
             torchvision.utils.save_image(
-                real_data, os.path.join(exp_path, 'real_data.png'))
+                real_data, os.path.join(exp_path, 'real_data_epoch_{}.png'.format(epoch)))
 
             if args.save_content:
                 if epoch % args.save_content_every == 0:
