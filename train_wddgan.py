@@ -214,13 +214,13 @@ def train(rank, gpu, args):
                     grad_penalty_call(args, D_real, x_t)
 
             # sr and x(t+1) concat:
-            
-            print(torch.add(sr_data, real_data).size())
+            x_tp1 = torch.add(sr_data, x_tp1)
+            x_tp1 = torch.div(t_p1, 4)
 
 
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
-            x_0_predict = netG(torch.cat([x_tp1, sr_data],dim=1).detach(), t, latent_z)
+            x_0_predict = netG(x_tp1.detach(), t, latent_z)
 
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
 
