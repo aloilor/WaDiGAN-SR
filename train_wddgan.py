@@ -194,8 +194,6 @@ def train(rank, gpu, args):
             assert -1 <= sr_data.min() < 0
             assert 0 < sr_data.max() <= 1
 
-            print("sr_wavelet size: ", sr_data.size())
-
             # sample t
             t = torch.randint(0, args.num_timesteps,
                               (real_data.size(0),), device=device)
@@ -215,7 +213,7 @@ def train(rank, gpu, args):
                 if global_step % args.lazy_reg == 0:
                     grad_penalty_call(args, D_real, x_t)
 
-            print("size of concatenation: ", torch.cat([x_tp1, sr_data],dim=1))
+            print("size of concatenation: ", torch.cat([x_tp1, sr_data],dim=1).size())
 
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
