@@ -278,8 +278,7 @@ def train(rank, gpu, args):
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 2 == 0:
-
+            if epoch % 5 == 0:
                 # saving SR images 
                 torchvision.utils.save_image(sr_image, os.path.join(
                     exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
@@ -289,26 +288,36 @@ def train(rank, gpu, args):
                 torchvision.utils.save_image(x_pos_sample, os.path.join(
                     exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
 
-                # x_t_1 = torch.randn_like(real_data)
-                # fake_sample = sample_from_model(
-                #     pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
+                
+                x_t_1 = torch.randn_like(real_data)
+                x_t_1 = torch.add(sr_data, x_t_1)
+                x_t_1 = torch.div(x_t_1, 2)
+
+                resoluted = sample_from_model(
+                     pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
 
                 x_0_predict *= 2
                 real_data *= 2
+                resoluted *= 2
                 if not args.use_pytorch_wavelet:
                     x_0_predict = iwt(
                          x_0_predict[:, :3], x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12])
                     real_data = iwt(
                         real_data[:, :3], real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12])
+                    resoluted = iwt(
+                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
                 else:
                     x_0_predict = iwt((x_0_predict[:, :3], [torch.stack(
                         (x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12]), dim=2)]))
                     real_data = iwt((real_data[:, :3], [torch.stack(
                         (real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12]), dim=2)]))
+                    resoluted = iwt((resoluted[:, :3], [torch.stack(
+                        (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
 
                 x_0_predict = (torch.clamp(x_0_predict, -1, 1) + 1) / 2  # 0-1
                 real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
-                
+                resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
+
                 # saving predicted samples
                 torchvision.utils.save_image(x_0_predict, os.path.join(
                     exp_path, 'x0_prediction_epoch_{}.png'.format(epoch)), normalize=True)
@@ -316,6 +325,10 @@ def train(rank, gpu, args):
                 #saving real data
                 torchvision.utils.save_image(
                     real_data, os.path.join(exp_path, 'real_data_epoch_{}.png'.format(epoch)))
+
+                # saving resoluted images
+                torchvision.utils.save_image(resoluted, os.path.join(
+                    exp_path, 'resoluted_epoch_{}.png'.format(epoch)), normalize=True)
 
             if args.save_content:
                 if epoch % args.save_content_every == 0:
