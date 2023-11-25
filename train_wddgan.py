@@ -290,11 +290,9 @@ def train(rank, gpu, args):
 
                 
                 x_t_1 = torch.randn_like(real_data)
-                x_t_1 = torch.add(sr_data, x_t_1)
-                x_t_1 = torch.div(x_t_1, 2)
 
                 resoluted = sample_from_model(
-                     pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
+                     pos_coeff, netG, args.num_timesteps, x_t_1, sr_data, T, args)
 
                 x_0_predict *= 2
                 real_data *= 2
