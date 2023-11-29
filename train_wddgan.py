@@ -216,9 +216,11 @@ def train(rank, gpu, args):
                 if global_step % args.lazy_reg == 0:
                     grad_penalty_call(args, D_real, x_t)
 
-            # sr and x(t+1) concat:
-            x_tp1_sr = torch.add(sr_data, x_tp1)
-            x_tp1_sr = torch.div(x_tp1_sr, 2)
+            # sr and x(t+1) channel wise concat :
+            x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
+
+            print(x_tp1_sr.size())
+            exit()
 
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
