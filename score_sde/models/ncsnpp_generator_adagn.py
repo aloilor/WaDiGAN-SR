@@ -905,9 +905,7 @@ class WaveletNCSNpp(NCSNpp):
         else: # yes
             h = self.act(modules[m_idx](h))
             m_idx += 1
-            print("size before the last convolution:", h.size())
             h = modules[m_idx](h)
-            print("size after the last convolution:", h.size())
 
             m_idx += 1
 
