@@ -477,6 +477,12 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=4,
                         help='num_workers')
 
+    # super resolution
+    parser.add_argument('--l_resolution', type=int, default=16,
+                        help='low resolution need to super_resolution')
+    parser.add_argument('--h_resolution', type=int, default=64,
+                        help='high resolution need to super_resolution')
+    
 
     args = parser.parse_args()
 
