@@ -79,8 +79,19 @@ def train(rank, gpu, args):
                                               shuffle=False,
                                               num_workers=args.num_workers,
                                               pin_memory=True)
-    test_samples = next(iter(test_data_loader)) # samples of test set to try 
-    print(test_samples)
+
+
+    test_samples = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
+    test_hr_image = data_dict['HR'] # test hr_img
+    test_sr_image = data_dict['SR'] # sr_img - bicubic interpolated
+    test_sample_index = data_dict['Index']
+    # saving HR test set images 
+    torchvision.utils.save_image(test_hr_image, os.path.join(
+        exp_path, 'test_hr.png'), normalize=True)
+    # saving LR test set images 
+    torchvision.utils.save_image(test_sr_image, os.path.join(
+        exp_path, 'test_lr.png'), normalize=True)
+
     exit()
 
     
