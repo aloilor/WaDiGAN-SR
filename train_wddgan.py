@@ -223,7 +223,6 @@ def train(rank, gpu, args):
             latent_z = torch.randn(batch_size, nz, device=device)
             x_0_predict = netG(x_tp1_sr.detach(), t, latent_z)
 
-            print(x_0_predict.size())
 
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t) # x(t-1) fake 
 
@@ -250,8 +249,7 @@ def train(rank, gpu, args):
             x_t, x_tp1 = q_sample_pairs(coeff, real_data, t)
 
             # sr and x(t+1) concat:
-            x_tp1_sr = torch.add(sr_data, x_tp1)
-            x_tp1_sr = torch.div(x_tp1_sr, 2)
+            x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
             latent_z = torch.randn(batch_size, nz, device=device)
             x_0_predict = netG(x_tp1_sr.detach(), t, latent_z)
@@ -289,7 +287,6 @@ def train(rank, gpu, args):
                 torchvision.utils.save_image(x_pos_sample, os.path.join(
                     exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
 
-                
                 x_t_1 = torch.randn_like(real_data)
 
                 resoluted = sample_from_model(
