@@ -45,6 +45,18 @@ def train(rank, gpu, args):
 
     nz = args.nz  # latent dimension
 
+    # experiment path creation
+    exp = args.exp
+    parent_dir = "/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}".format(args.dataset)
+
+    exp_path = os.path.join(parent_dir, exp)
+    if rank == 0:
+        if not os.path.exists(exp_path):
+            os.makedirs(exp_path)
+            copy_source(__file__, exp_path)
+            shutil.copytree('score_sde/models',
+                            os.path.join(exp_path, 'score_sde/models'))
+
     # train set and test set
     dataset = create_dataset(args)
 
@@ -144,16 +156,7 @@ def train(rank, gpu, args):
 
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
-    exp = args.exp
-    parent_dir = "/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}".format(args.dataset)
 
-    exp_path = os.path.join(parent_dir, exp)
-    if rank == 0:
-        if not os.path.exists(exp_path):
-            os.makedirs(exp_path)
-            copy_source(__file__, exp_path)
-            shutil.copytree('score_sde/models',
-                            os.path.join(exp_path, 'score_sde/models'))
 
     coeff = Diffusion_Coefficients(args, device)
     pos_coeff = Posterior_Coefficients(args, device)
