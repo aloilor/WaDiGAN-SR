@@ -48,8 +48,8 @@ def train(rank, gpu, args):
     # train set and test set
     dataset = create_dataset(args)
 
-    train_size = int(0.8 * len(dataset))  # 80% for training
-    test_size = len(dataset) - train_size  # 20% for testing
+    train_size = int(0.95 * len(dataset))  # 95% for training
+    test_size = len(dataset) - train_size  # 5% for testing
 
     print("train size: ", train_size, "test_size:", test_size)
         
@@ -78,9 +78,9 @@ def train(rank, gpu, args):
                                               batch_size=32,
                                               shuffle=False,
                                               num_workers=args.num_workers,
-                                              drop_last=True)
+                                              pin_memory=True)
     test_samples = next(iter(test_data_loader)) # samples of test set to try 
-    print(test_samples.size())
+    print(test_samples)
     exit()
 
     
