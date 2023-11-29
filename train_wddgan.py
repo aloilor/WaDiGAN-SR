@@ -45,17 +45,46 @@ def train(rank, gpu, args):
 
     nz = args.nz  # latent dimension
 
+    # train set and test set
     dataset = create_dataset(args)
-    train_sampler = torch.utils.data.distributed.DistributedSampler(dataset,
+
+    train_size = int(0.8 * len(dataset))  # 80% for training
+    test_size = len(dataset) - train_size  # 20% for testing
+
+    print("train size: ", train_size, "test_size:", test_size)
+        
+    # Set a seed for reproducibility
+    torch.manual_seed(42) 
+    train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
+
+
+
+
+
+    # train set loader and sampler
+    train_sampler = torch.utils.data.distributed.DistributedSampler(train_set,
                                                                     num_replicas=args.world_size,
                                                                     rank=rank)
-    data_loader = torch.utils.data.DataLoader(dataset,
+    train_data_loader = torch.utils.data.DataLoader(train_set,
                                               batch_size=batch_size,
                                               shuffle=False,
                                               num_workers=args.num_workers,
                                               pin_memory=True,
                                               sampler=train_sampler,
                                               drop_last=True)
+
+    # test loader
+    test_data_loader = torch.utils.data.DataLoader(test_set,
+                                              batch_size=32,
+                                              shuffle=False,
+                                              num_workers=args.num_workers,
+                                              drop_last=True)
+    test_samples = next(iter(test_data_loader)) # samples of test set to try 
+    print(test_samples.size())
+    exit()
+
+    
+
     args.ori_image_size = args.image_size
     args.image_size = args.current_resolution
     G_NET_ZOO = {"normal": NCSNpp, "wavelet": WaveletNCSNpp}
@@ -64,7 +93,7 @@ def train(rank, gpu, args):
     print("GEN: {}, DISC: {}".format(gen_net, disc_net))
     netG = gen_net(args).to(device)
 
-    if args.dataset in ['cifar10', 'stl10', 'celebahq_16_32', 'celebahq_16_64']:
+    if args.dataset in ['celebahq_16_64']:
         netD = disc_net[0](nc=args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
@@ -144,7 +173,7 @@ def train(rank, gpu, args):
     for epoch in range(init_epoch, args.num_epoch + 1):
         train_sampler.set_epoch(epoch)
 
-        for iteration, data_dict in enumerate(data_loader):
+        for iteration, data_dict in enumerate(train_data_loader):
             
             # update disc
             for p in netD.parameters():
