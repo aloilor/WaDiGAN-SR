@@ -482,7 +482,7 @@ class WaveletNCSNpp(NCSNpp):
         # allowing it to weight different regions differently during processing
         self.attn_resolutions = attn_resolutions = config.attn_resolutions
         dropout = config.dropout
-        resamp_with_conv = config.resamp_with_conv
+        resamp_with_conv = config.resamp_with_conv # up and down sample with convolution
         self.num_resolutions = num_resolutions = len(ch_mult)
         self.all_resolutions = all_resolutions = [
             (config.image_size // self.patch_size) // (2 ** i) for i in range(num_resolutions)]
@@ -713,7 +713,7 @@ class WaveletNCSNpp(NCSNpp):
             channels = getattr(config, "num_out_channels", channels)
             modules.append(nn.GroupNorm(num_groups=min(in_ch // 4, 32),
                                         num_channels=in_ch, eps=1e-6))
-            modules.append(conv3x3(in_ch, channels, init_scale=init_scale))
+            modules.append(conv3x3(in_ch, channels, init_scale=init_scale)) # last conv exiting from the gen
 
         self.all_modules = nn.ModuleList(modules)
 
@@ -755,9 +755,10 @@ class WaveletNCSNpp(NCSNpp):
             raise ValueError(f'embedding type {self.embedding_type} unknown.')
 
         if self.conditional: #yes
-            temb = modules[m_idx](temb)
+            # time embedding
+            temb = modules[m_idx](temb) #linear
             m_idx += 1
-            temb = modules[m_idx](self.act(temb))
+            temb = modules[m_idx](self.act(temb)) #linear
             m_idx += 1
         else:
             temb = None
@@ -771,7 +772,7 @@ class WaveletNCSNpp(NCSNpp):
         if self.progressive_input != 'none': #yes
             input_pyramid = x
 
-        hs = [modules[m_idx](x)]
+        hs = [modules[m_idx](x)] # conv3x3 to stretch the channels (in_ch -> nf (64 or 128))
         skipHs = [] # intermediate outputs of the residual blocks used for skip connections
         m_idx += 1
         for i_level in range(self.num_resolutions):
@@ -819,7 +820,7 @@ class WaveletNCSNpp(NCSNpp):
             h = modules[m_idx](h, temb, zemb)
         else: # yes
             h, hlh, hhl, hhh = self.dwt(h)
-            h = modules[m_idx](h / 2., temb, zemb)
+            h = modules[m_idx](h / 2., temb, zemb) #resblock
             h = self.iwt(h * 2., hlh, hhl, hhh)
         m_idx += 1
 
@@ -833,7 +834,7 @@ class WaveletNCSNpp(NCSNpp):
             # forward on original feature space
             h = modules[m_idx](h, temb, zemb)
             h, hlh, hhl, hhh = self.dwt(h)
-            h = modules[m_idx](h / 2., temb, zemb)  # forward on wavelet space
+            h = modules[m_idx](h / 2., temb, zemb)  # forward on wavelet space - resblock
             h = self.iwt(h * 2., hlh, hhl, hhh)
         m_idx += 1
 
