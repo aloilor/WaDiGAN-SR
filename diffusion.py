@@ -167,7 +167,7 @@ def sample_from_model(coefficients, generator, n_time, x_init, x_cond, T, opt,):
             latent_z = torch.randn(x.size(0), opt.nz, device=x.device)
             
             # x conditioned on LR 
-            x_t_1 = torch.cat(x, x_cond)
+            x_t_1 = torch.cat([x, x_cond], dim=1)
 
             x_0 = generator(x_t_1, t_time, latent_z)
             x_new = sample_posterior(coefficients, x_0, x_t_1, t) # x(t-1) fake
