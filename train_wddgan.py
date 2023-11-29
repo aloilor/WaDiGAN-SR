@@ -220,11 +220,13 @@ def train(rank, gpu, args):
             x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
             print(x_tp1_sr.size())
-            exit()
+
 
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
             x_0_predict = netG(x_tp1_sr.detach(), t, latent_z)
+
+            print(x_0_predict.size())
 
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t) # x(t-1) fake 
 
