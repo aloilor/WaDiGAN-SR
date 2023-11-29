@@ -100,21 +100,7 @@ def train(rank, gpu, args):
     torchvision.utils.save_image(test_sr_image, os.path.join(
         exp_path, 'test_lr.png'), normalize=True)
 
-    # wavelet transform lr test images
-    if not args.use_pytorch_wavelet:
-        for i in range(num_levels):
-            test_srll, test_srlh, test_srhl, test_srhh = dwt(test_sr_image)
-    else:
-        test_srll, test_srh = dwt(test_sr_image)  # [b, 3, h, w], [b, 3, 3, h, w]
-        test_srlh, test_srhl, test_srhh = torch.unbind(test_sr_image[0], dim=2)
-    
-    test_sr_data = torch.cat([test_srll, test_srlh, test_srhl, test_srhh], dim=1) # [b, 12, h/2, w/2]
 
-    # normalize sr_data
-    test_sr_data = test_sr_data / 2.0  # [-1, 1]
-
-    assert -1 <= test_sr_data.min() < 0
-    assert 0 < test_sr_data.max() <= 1
     
     
 
@@ -165,6 +151,24 @@ def train(rank, gpu, args):
         iwt = DWTInverse(mode='zero', wave='haar').cuda()
 
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
+
+
+    # wavelet transform lr test_set images
+    if not args.use_pytorch_wavelet:
+        for i in range(num_levels):
+            test_srll, test_srlh, test_srhl, test_srhh = dwt(test_sr_image)
+    else:
+        test_srll, test_srh = dwt(test_sr_image)  # [b, 3, h, w], [b, 3, 3, h, w]
+        test_srlh, test_srhl, test_srhh = torch.unbind(test_sr_image[0], dim=2)
+    
+    test_sr_data = torch.cat([test_srll, test_srlh, test_srhl, test_srhh], dim=1) # [b, 12, h/2, w/2]
+
+    # normalize sr_data
+    test_sr_data = test_sr_data / 2.0  # [-1, 1]
+
+    assert -1 <= test_sr_data.min() < 0
+    assert 0 < test_sr_data.max() <= 1
+
 
 
 
