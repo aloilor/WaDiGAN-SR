@@ -713,6 +713,7 @@ class WaveletNCSNpp(NCSNpp):
             channels = getattr(config, "num_out_channels", channels)
             modules.append(nn.GroupNorm(num_groups=min(in_ch // 4, 32),
                                         num_channels=in_ch, eps=1e-6))
+            print("input channels to last convolution: ", in_ch)
             modules.append(conv3x3(in_ch, channels, init_scale=init_scale)) # last conv exiting from the gen
 
         self.all_modules = nn.ModuleList(modules)

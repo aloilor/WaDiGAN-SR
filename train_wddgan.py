@@ -219,9 +219,6 @@ def train(rank, gpu, args):
             # sr and x(t+1) channel wise concat :
             x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
-            print(x_tp1_sr.size())
-
-
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
             x_0_predict = netG(x_tp1_sr.detach(), t, latent_z)
