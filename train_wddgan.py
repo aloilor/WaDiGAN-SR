@@ -156,10 +156,10 @@ def train(rank, gpu, args):
     # wavelet transform lr test_set images
     if not args.use_pytorch_wavelet:
         for i in range(num_levels):
-            test_srll, test_srlh, test_srhl, test_srhh = dwt(test_sr_image)
+            test_srll, test_srlh, test_srhl, test_srhh = dwt(test_sr)
     else:
-        test_srll, test_srh = dwt(test_sr_image)  # [b, 3, h, w], [b, 3, 3, h, w]
-        test_srlh, test_srhl, test_srhh = torch.unbind(test_sr_image[0], dim=2)
+        test_srll, test_srh = dwt(test_sr)  # [b, 3, h, w], [b, 3, 3, h, w]
+        test_srlh, test_srhl, test_srhh = torch.unbind(test_sr[0], dim=2)
     
     test_sr_data = torch.cat([test_srll, test_srlh, test_srhl, test_srhh], dim=1) # [b, 12, h/2, w/2]
 
