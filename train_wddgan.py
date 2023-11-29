@@ -152,7 +152,7 @@ def train(rank, gpu, args):
 
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
-
+    test_sr = test_sr_image.to(device, non_blocking=True)
     # wavelet transform lr test_set images
     if not args.use_pytorch_wavelet:
         for i in range(num_levels):
