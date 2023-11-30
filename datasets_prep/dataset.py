@@ -17,15 +17,14 @@ def num_samples(dataset, train):
 
 
 def create_dataset(args):
-    if args.dataset == 'celebahq_16_64':
-        dataset = LRHRDataset(
-                dataroot=args.datadir,
-                datatype='lmdb',
-                l_resolution=args.l_resolution,
-                r_resolution=args.h_resolution,
-                split="train",
-                data_len=-1,
-                need_LR=False
-                )
+    dataset = LRHRDataset(
+            dataroot=args.datadir,
+            datatype='lmdb',
+            l_resolution=args.l_resolution,
+            r_resolution=args.h_resolution,
+            split="train",
+            data_len=-1,
+            need_LR=False
+            )
 
     return dataset
