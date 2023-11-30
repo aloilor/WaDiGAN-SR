@@ -535,7 +535,7 @@ if __name__ == '__main__':
     # super resolution
     parser.add_argument('--l_resolution', type=int, default=16,
                         help='low resolution need to super_resolution')
-    parser.add_argument('--h_resolution', type=int, default=64,
+    parser.add_argument('--h_resolution', type=int, default=128,
                         help='high resolution need to super_resolution')
     
 
