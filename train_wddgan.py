@@ -332,7 +332,7 @@ def train(rank, gpu, args):
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 2 == 0:
+            if epoch % 1 == 0:
                 # saving SR images 
                 torchvision.utils.save_image(sr_image, os.path.join(
                     exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
