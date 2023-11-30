@@ -62,9 +62,7 @@ def train(rank, gpu, args):
 
     train_size = int(0.95 * len(dataset))  # 95% for training
     test_size = len(dataset) - train_size  # 5% for testing
-
-    print("train size: ", train_size, "test_size:", test_size)
-        
+      
     # Set a seed for reproducibility
     torch.manual_seed(42) 
     train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
@@ -334,7 +332,7 @@ def train(rank, gpu, args):
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 1 == 0:
+            if epoch % 2 == 0:
                 # saving SR images 
                 torchvision.utils.save_image(sr_image, os.path.join(
                     exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
@@ -344,6 +342,7 @@ def train(rank, gpu, args):
                 torchvision.utils.save_image(x_pos_sample, os.path.join(
                     exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
 
+                # inference on test batch
                 x_t_1 = torch.randn_like(test_sr_data)
 
                 resoluted = sample_from_model(
@@ -379,7 +378,7 @@ def train(rank, gpu, args):
                 torchvision.utils.save_image(
                     real_data, os.path.join(exp_path, 'real_data_epoch_{}.png'.format(epoch)))
 
-                # saving resoluted images
+                # saving resoluted test set images
                 torchvision.utils.save_image(resoluted, os.path.join(
                     exp_path, 'resoluted_test_epoch_{}.png'.format(epoch)), normalize=True)
 
@@ -510,9 +509,9 @@ if __name__ == '__main__':
     parser.add_argument("--no_use_residual", action="store_true")
 
     parser.add_argument('--save_content', action='store_true', default=False)
-    parser.add_argument('--save_content_every', type=int, default=2,
+    parser.add_argument('--save_content_every', type=int, default=1,
                         help='save content for resuming every x epochs')
-    parser.add_argument('--save_ckpt_every', type=int,default=2, 
+    parser.add_argument('--save_ckpt_every', type=int,default=1, 
                         help='save ckpt every x epochs')
 
     # ddp
