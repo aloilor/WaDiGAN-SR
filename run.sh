@@ -30,6 +30,8 @@ if [[ $MODE == train ]]; then
 			--master_port $MASTER_PORT \
 			--current_resolution 32 --attn_resolution 16 --num_disc_layers 5 --rec_loss \
 			--net_type wavelet \
+			--l_resolution 16 --h_resolution 64 \
+
 			# --use_pytorch_wavelet \
 
 	elif [[ $DATASET == celebahq_16_128 ]]; then #same as celebahq_256 - might need to revisit later
@@ -41,6 +43,7 @@ if [[ $MODE == train ]]; then
 			--master_port $MASTER_PORT \
 			--current_resolution 32 --attn_resolution 16 --num_disc_layers 5 --rec_loss \
 			--net_type wavelet \
+			--l_resolution 16 --h_resolution 128 \
 			# --use_pytorch_wavelet \
 
 	elif [[ $DATASET == stl10 ]]; then
