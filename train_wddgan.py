@@ -110,11 +110,13 @@ def train(rank, gpu, args):
     print("GEN: {}, DISC: {}".format(gen_net, disc_net))
     netG = gen_net(args).to(device)
 
-    if args.dataset in ['celebahq_16_64']:
+    if args.dataset in ['celebahq_16_64', 'celebahq_16_128']:
+        # small images disc
         netD = disc_net[0](nc=args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
     else:
+        # large images disc
         netD = disc_net[1](nc=args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)

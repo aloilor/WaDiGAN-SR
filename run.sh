@@ -32,14 +32,16 @@ if [[ $MODE == train ]]; then
 			--net_type wavelet \
 			# --use_pytorch_wavelet \
 
-	elif [[ $DATASET == cifar10 ]]; then
-		python train_wddgan.py --dataset cifar10 --exp wddgan_cifar10_exp1_noatn_g122_d3_recloss_1800ep --num_channels 12 --num_channels_dae 128 --num_timesteps 4 \
-			--num_res_blocks 2 --batch_size 256 --num_epoch 1800 --ngf 64 --nz 100 --z_emb_dim 256 --n_mlp 4 --embedding_type positional \
-			--use_ema --ema_decay 0.9999 --r1_gamma 0.02 --lr_d 1.25e-4 --lr_g 1.6e-4 --lazy_reg 15 \
-			--ch_mult 1 2 2 --save_content --datadir ./data/cifar-10 \
-			--master_port $MASTER_PORT --num_process_per_node $GPUS \
-			--current_resolution 16 --attn_resolutions 32 --num_disc_layers 3 --rec_loss \
-			--use_pytorch_wavelet \
+	elif [[ $DATASET == celebahq_16_128 ]]; then #same as celebahq_256 - might need to revisit later
+		python train_wddgan.py --dataset celebahq_16_128 --image_size 128 --exp srwavediff_celebahq_exp1_atn16_wg12224_d5_recloss_500ep --num_channels 24 \
+			--num_channels_dae 64 --ch_mult 1 2 2 2 4 --num_timesteps 2 \
+			--num_res_blocks 2 --batch_size 64 --num_epoch 500 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
+			--z_emb_dim 256 --lr_d 1e-4 --lr_g 2e-4 --lazy_reg 10 --save_content \
+			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_128/ \
+			--master_port $MASTER_PORT \
+			--current_resolution 32 --attn_resolution 16 --num_disc_layers 5 --rec_loss \
+			--net_type wavelet \
+			# --use_pytorch_wavelet \
 
 	elif [[ $DATASET == stl10 ]]; then
 		python train_wddgan.py --dataset stl10 --image_size 64 --exp wddgan_stl10_exp1_atn16_wg1222_d4_recloss_900ep/ --num_channels 12 --num_channels_dae 128 --num_timesteps 4 \
