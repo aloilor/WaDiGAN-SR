@@ -344,7 +344,7 @@ def train(rank, gpu, args):
                 torchvision.utils.save_image(x_pos_sample, os.path.join(
                     exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
 
-                x_t_1 = torch.randn_like(real_data)
+                x_t_1 = torch.randn_like(test_sr_data)
 
                 resoluted = sample_from_model(
                      pos_coeff, netG, args.num_timesteps, x_t_1, test_sr_data, T, args)
