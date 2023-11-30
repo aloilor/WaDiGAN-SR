@@ -99,9 +99,6 @@ def train(rank, gpu, args):
         exp_path, 'test_lr.png'), normalize=True)
 
 
-    
-    
-
     args.ori_image_size = args.image_size
     args.image_size = args.current_resolution
     G_NET_ZOO = {"normal": NCSNpp, "wavelet": WaveletNCSNpp}
@@ -334,7 +331,7 @@ def train(rank, gpu, args):
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 3 == 0:
+            if epoch % 1 == 0:
                 # saving SR images 
                 torchvision.utils.save_image(sr_image, os.path.join(
                     exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
