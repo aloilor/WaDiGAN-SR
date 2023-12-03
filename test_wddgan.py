@@ -121,6 +121,7 @@ def sample_and_test(args):
         # MEASURE PERFORMANCE
         with torch.no_grad():
             for rep in range(repetitions):
+                print("computing time, repetition number: ", rep)
                 sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
                 lr = sample['SR'] 
                 lr = lr.to(device, non_blocking=True)
