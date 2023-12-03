@@ -99,13 +99,9 @@ def sample_and_test(args):
     torchvision.utils.save_image(lr, os.path.join(
         save_dir, 'lr{}.png'.format(index)), normalize=True)
 
-
     dwt = DWT_2D("haar")
     iwt = IDWT_2D("haar")
-
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
-
-
     if args.measure_time:
         x_t_1 = torch.randn(1, int(args.num_channels / 2),
                             args.image_size, args.image_size).to(device)
