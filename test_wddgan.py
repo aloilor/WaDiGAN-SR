@@ -260,6 +260,8 @@ if __name__ == '__main__':
     parser.add_argument('--fourier_scale', type=float, default=16.,
                         help='scale of fourier transform')
     parser.add_argument('--not_use_tanh', action='store_true', default=False)
+    parser.add_argument('--num_workers', type=int, default=4,
+                        help='num_workers')
 
     # generator and training
     parser.add_argument(
