@@ -97,7 +97,7 @@ def sample_and_test(args):
         save_dir, 'hr{}.png'.format(index)), normalize=True)
     # saving LR test set images 
     torchvision.utils.save_image(lr, os.path.join(
-        save_dir, 'lr{}.png'.format()), normalize=True)
+        save_dir, 'lr{}.png'.format(index)), normalize=True)
 
 
     dwt = DWT_2D("haar")
