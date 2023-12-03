@@ -4,13 +4,16 @@ import os
 import numpy as np
 import torch
 import torchvision
+
 from diffusion import get_time_schedule, Posterior_Coefficients, \
     sample_from_model
 
-from DWT_IDWT.DWT_IDWT_layer import IDWT_2D
+from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
 from pytorch_fid.fid_score import calculate_fid_given_paths
 from pytorch_wavelets import DWTInverse
 from score_sde.models.ncsnpp_generator_adagn import NCSNpp, WaveletNCSNpp
+from datasets_prep.dataset import create_dataset
+
 
 
 # %%
@@ -27,6 +30,10 @@ def sample_and_test(args):
     else:
         real_img_dir = args.real_img_dir
 
+   
+    res_dir = "/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/results".format(
+        args.dataset, args.exp)
+
     def to_range_0_1(x):
         return (x + 1.) / 2.
 
@@ -39,7 +46,7 @@ def sample_and_test(args):
     print("GEN: {}".format(gen_net))
 
     netG = gen_net(args).to(device)
-    ckpt = torch.load('/content/gdrive/MyDrive/wave-diff-sr/saved_info/wdd_gan/{}/{}/netG_{}.pth'.format(
+    ckpt = torch.load('/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/netG_{}.pth'.format(
         args.dataset, args.exp, args.epoch_id), map_location=device)
 
     # loading weights from ddp in single gpu
@@ -59,12 +66,48 @@ def sample_and_test(args):
 
     iters_needed = 50000 // args.batch_size
 
-    save_dir = "./wddgan_generated_samples/{}".format(args.dataset)
+    save_dir = "/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/results/".format(
+        args.dataset, args.exp)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
+    # test set
+    dataset = create_dataset(args)
+
+    train_size = int(0.95 * len(dataset))  # 95% for training
+    test_size = len(dataset) - train_size  # 5% for testing
+      
+    # Set a seed for reproducibility
+    torch.manual_seed(42) 
+    train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
+
+    # test loader
+    test_data_loader = torch.utils.data.DataLoader(test_set,
+                                              batch_size=1,
+                                              shuffle=False,
+                                              num_workers=args.num_workers,
+                                              pin_memory=True)
+
+    sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
+    hr = sample['HR'] 
+    lr = sample['SR'] 
+    index = sample['Index']
+    # saving HR images 
+    torchvision.utils.save_image(hr, os.path.join(
+        save_dir, 'hr{}.png'.format(index)), normalize=True)
+    # saving LR test set images 
+    torchvision.utils.save_image(lr, os.path.join(
+        save_dir, 'lr{}.png'.format()), normalize=True)
+
+
+    dwt = DWT_2D("haar")
+    iwt = IDWT_2D("haar")
+
+    num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
+
+
     if args.measure_time:
-        x_t_1 = torch.randn(args.batch_size, args.num_channels,
+        x_t_1 = torch.randn(1, int(args.num_channels / 2),
                             args.image_size, args.image_size).to(device)
         # INIT LOGGERS
         starter, ender = torch.cuda.Event(
@@ -74,17 +117,29 @@ def sample_and_test(args):
         # GPU-WARM-UP
         for _ in range(10):
             _ = sample_from_model(
-                pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
+                pos_coeff, netG, args.num_timesteps, x_t_1, x_t_1, T, args)
         # MEASURE PERFORMANCE
         with torch.no_grad():
             for rep in range(repetitions):
-                starter.record()
-                fake_sample = sample_from_model(
-                    pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
+                sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
+                lr = sample['SR'] 
+                lr = lr.to(device, non_blocking=True)
+                # wavelet transform lr image
+                for i in range(num_levels):
+                    lrll, lrlh, lrhl, lrhh = dwt(lr)
+                lrw = torch.cat([lrll, lrlh, lrhl, lrhh], dim=1) # [b, 12, h/2, w/2]
+                # normalize sr_data
+                lrw = lrw / 2.0  # [-1, 1]
+                assert -1 <= lrw.min() < 0
+                assert 0 < lrw.max() <= 1
 
-                fake_sample *= 2.
-                fake_sample = iwt((fake_sample[:, :3], [torch.stack(
-                    (fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12]), dim=2)]))
+                starter.record()
+                resoluted = sample_from_model(
+                    pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
+
+                resoluted *= 2
+                resoluted = iwt(
+                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
                 ender.record()
                 # WAIT FOR GPU SYNC
                 torch.cuda.synchronize()
@@ -150,6 +205,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('ddgan parameters')
     parser.add_argument('--seed', type=int, default=42,
                         help='seed used for initialization')
+    parser.add_argument('--datadir', default='./data')
     parser.add_argument('--compute_fid', action='store_true', default=False,
                         help='whether or not compute FID')
     parser.add_argument('--measure_time', action='store_true', default=False,
@@ -230,6 +286,12 @@ if __name__ == '__main__':
     parser.add_argument("--no_use_fbn", action="store_true")
     parser.add_argument("--no_use_freq", action="store_true")
     parser.add_argument("--no_use_residual", action="store_true")
+
+    # super resolution
+    parser.add_argument('--l_resolution', type=int, default=16,
+                        help='low resolution need to super_resolution')
+    parser.add_argument('--h_resolution', type=int, default=128,
+                        help='high resolution need to super_resolution')
 
     args = parser.parse_args()
 

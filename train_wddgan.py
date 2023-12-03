@@ -166,9 +166,6 @@ def train(rank, gpu, args):
     assert -1 <= test_sr_data.min() < 0
     assert 0 < test_sr_data.max() <= 1
 
-
-
-
     coeff = Diffusion_Coefficients(args, device)
     pos_coeff = Posterior_Coefficients(args, device)
     T = get_time_schedule(args, device)
