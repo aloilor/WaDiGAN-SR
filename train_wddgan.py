@@ -347,9 +347,14 @@ def train(rank, gpu, args):
                 resoluted = sample_from_model(
                      pos_coeff, netG, args.num_timesteps, x_t_1, test_sr_data, T, args)
 
+                resoluted_train = sample_from_model(
+                     pos_coeff, netG, args.num_timesteps, x_t_1, sr_data, T, args)
+
+
                 x_0_predict *= 2
                 real_data *= 2
                 resoluted *= 2
+                resoluted_train *= 2
                 if not args.use_pytorch_wavelet:
                     x_0_predict = iwt(
                          x_0_predict[:, :3], x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12])
@@ -357,6 +362,8 @@ def train(rank, gpu, args):
                         real_data[:, :3], real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12])
                     resoluted = iwt(
                          resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+                    resoluted_train = iwt(
+                         resoluted_train[:, :3], resoluted_train[:, 3:6], resoluted_train[:, 6:9], resoluted_train[:, 9:12])
                 else:
                     x_0_predict = iwt((x_0_predict[:, :3], [torch.stack(
                         (x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12]), dim=2)]))
@@ -368,6 +375,7 @@ def train(rank, gpu, args):
                 x_0_predict = (torch.clamp(x_0_predict, -1, 1) + 1) / 2  # 0-1
                 real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
                 resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
+                resoluted_train = (torch.clamp(resoluted_train, -1, 1) + 1) / 2  # 0-1
 
                 # saving predicted samples
                 torchvision.utils.save_image(x_0_predict, os.path.join(
@@ -380,6 +388,10 @@ def train(rank, gpu, args):
                 # saving resoluted test set images
                 torchvision.utils.save_image(resoluted, os.path.join(
                     exp_path, 'resoluted_test_epoch_{}.png'.format(epoch)), normalize=True)
+
+                # saving resoluted train set images
+                torchvision.utils.save_image(resoluted_train, os.path.join(
+                    exp_path, 'resoluted_train_epoch_{}.png'.format(epoch)), normalize=True)
 
             if args.save_content:
                 if epoch % args.save_content_every == 0:
