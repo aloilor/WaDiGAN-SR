@@ -20,6 +20,8 @@ if __name__ == "__main__":
     avg_ssim = 0.0
     idx = 0
     for rname, fname in zip(real_names, fake_names):
+        print(rname)
+        print(fname)
         idx += 1
         ridx = rname.rsplit("_hr")[0]
         print(ridx)
