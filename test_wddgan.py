@@ -219,8 +219,8 @@ def sample_and_test(args):
 
             resoluted = to_range_0_1(resoluted)  # 0-1
             torchvision.utils.save_image(
-                resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(index)), nrow=8, padding=0)
-            print("Results are saved at tot_sr_id{}.jpg".format(index))
+                resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(idx)), nrow=8, padding=0)
+            print("Results are saved at tot_sr_id{}.jpg".format(idx))
             if (iteration >= 10):
                 exit(0)
 
