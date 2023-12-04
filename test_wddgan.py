@@ -205,7 +205,7 @@ def sample_and_test(args):
 
             x_t_1 = torch.randn(args.batch_size, int(args.num_channels / 2),
                                 args.image_size, args.image_size).to(device)
-            fake_sample = sample_from_model(
+            resoluted = sample_from_model(
                 pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
 
             resoluted *= 2
