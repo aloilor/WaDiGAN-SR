@@ -18,16 +18,11 @@ if __name__ == "__main__":
     avg_ssim = 0.0
     idx = 0
     for rname, fname in zip(real_names, fake_names):
-        print(rname)
-        print(fname)
         idx += 1
         ridx = rname.rsplit("_hr")[0]
-        print(ridx)
         fidx = fname.rsplit("_sr")[0]
-        print(fidx)
         assert ridx == fidx, 'Image ridx:{ridx}!=fidx:{fidx}'.format(
             ridx, fidx)
-
         hr_img = np.array(Image.open(rname))
         sr_img = np.array(Image.open(fname))
         psnr = Metrics.calculate_psnr(sr_img, hr_img)
