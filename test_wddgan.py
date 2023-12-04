@@ -66,8 +66,7 @@ def sample_and_test(args):
 
     iters_needed = 50000 // args.batch_size
 
-    save_dir = "/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/results/".format(
-        args.dataset, args.exp)
+    save_dir = "/content/gdrive/MyDrive/srwavediff/results/{}/".format(args.exp)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
@@ -83,25 +82,18 @@ def sample_and_test(args):
 
     # test loader
     test_data_loader = torch.utils.data.DataLoader(test_set,
-                                              batch_size=1,
+                                              batch_size=args.batch_size,
                                               shuffle=False,
                                               num_workers=args.num_workers,
                                               pin_memory=True)
 
-    sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
-    hr = sample['HR'] 
-    lr = sample['SR'] 
-    index = sample['Index']
-    # saving HR images 
-    torchvision.utils.save_image(hr, os.path.join(
-        save_dir, 'hr{}.png'.format(index)), normalize=True)
-    # saving LR test set images 
-    torchvision.utils.save_image(lr, os.path.join(
-        save_dir, 'lr{}.png'.format(index)), normalize=True)
 
     dwt = DWT_2D("haar")
     iwt = IDWT_2D("haar")
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
+
+
+
     if args.measure_time:
         x_t_1 = torch.randn(1, int(args.num_channels / 2),
                             args.image_size, args.image_size).to(device)
@@ -111,12 +103,19 @@ def sample_and_test(args):
         repetitions = 300
         timings = np.zeros((repetitions, 1))
         # GPU-WARM-UP
+
+        idx = 0
         for _ in range(10):
             _ = sample_from_model(
                 pos_coeff, netG, args.num_timesteps, x_t_1, x_t_1, T, args)
         # MEASURE PERFORMANCE
         with torch.no_grad():
             for rep in range(repetitions):
+                sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
+                hr = sample['HR'] 
+                lr = sample['SR'] 
+                index = sample['Index']
+
                 print("computing time, repetition number: ", rep)
                 sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
                 lr = sample['SR'] 
@@ -178,24 +177,52 @@ def sample_and_test(args):
         fid = calculate_fid_given_paths(paths=paths, **kwargs)
         print('FID = {}'.format(fid))
     else:
-        x_t_1 = torch.randn(args.batch_size, args.num_channels,
-                            args.image_size, args.image_size).to(device)
-        fake_sample = sample_from_model(
-            pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
+        idx = 0
+        for iteration, sample in enumerate(test_data_loader):
+            print("iteration: ", iteration)
+            idx += 1
+            hr = sample['HR'] 
+            lr = sample['SR'] 
+            index = sample['Index']
+            
+            # saving HR images 
+            torchvision.utils.save_image(hr, os.path.join(
+                save_dir, 'tot_hr_id{}.png'.format(idx)), normalize=True)
+            # saving LR test set images 
+            torchvision.utils.save_image(lr, os.path.join(
+                save_dir, 'tot_lr_id{}.png'.format(idx)), normalize=True)
 
-        fake_sample *= 2
-        if not args.use_pytorch_wavelet:
-            fake_sample = iwt(
-                fake_sample[:, :3], fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12])
-        else:
-            fake_sample = iwt((fake_sample[:, :3], [torch.stack(
-                (fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12]), dim=2)]))
-        fake_sample = torch.clamp(fake_sample, -1, 1)
 
-        fake_sample = to_range_0_1(fake_sample)  # 0-1
-        torchvision.utils.save_image(
-            fake_sample, './samples_{}.jpg'.format(args.dataset), nrow=8, padding=0)
-        print("Results are saved at samples_{}.jpg".format(args.dataset))
+            lr = lr.to(device, non_blocking=True)
+            # wavelet transform lr image
+            for i in range(num_levels):
+                lrll, lrlh, lrhl, lrhh = dwt(lr)
+            lrw = torch.cat([lrll, lrlh, lrhl, lrhh], dim=1) # [b, 12, h/2, w/2]
+            # normalize sr_data
+            lrw = lrw / 2.0  # [-1, 1]
+            assert -1 <= lrw.min() < 0
+            assert 0 < lrw.max() <= 1
+
+            x_t_1 = torch.randn(args.batch_size, int(args.num_channels / 2),
+                                args.image_size, args.image_size).to(device)
+            fake_sample = sample_from_model(
+                pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
+
+            resoluted *= 2
+            if not args.use_pytorch_wavelet:
+                resoluted = iwt(
+                    resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+            else:
+                resoluted = iwt((resoluted[:, :3], [torch.stack(
+                    (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
+            resoluted = torch.clamp(resoluted, -1, 1)
+
+            resoluted = to_range_0_1(resoluted)  # 0-1
+            torchvision.utils.save_image(
+                resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(index)), nrow=8, padding=0)
+            print("Results are saved at tot_sr_id{}.jpg".format(index))
+            if (iteration >= 10):
+                exit(0)
 
 
 if __name__ == '__main__':

@@ -75,9 +75,10 @@ else
 			--net_type wavelet \
 			--l_resolution 16 --h_resolution 128 \
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_128/ \
-			--measure_time \
+			--batch_size 64 \
+
+			# --measure_time \
 			# --compute_fid --real_img_dir ./pytorch_fid/celebahq_stat.npy \
-			# --batch_size 100 \
 
 	elif [[ $DATASET == celeba_256 ]]; then
 		python test_wddgan.py --dataset celeba_256 --image_size 256 --exp wddgan_celebahq_exp1_atn16_wg12224_d5_recloss_500ep --num_channels 12 --num_channels_dae 64 \
