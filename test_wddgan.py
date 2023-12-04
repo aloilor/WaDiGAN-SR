@@ -230,7 +230,7 @@ def sample_and_test(args):
             #savig sr images
             torchvision.utils.save_image(
                 resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(iteration)), nrow=8, padding=0)
-            for i, x in enumerate(lr):
+            for i, x in enumerate(resoluted):
                 torchvision.utils.save_image(x, os.path.join(
                     save_dir, '{}_{}sr.png'.format(iteration, i)), normalize = True)
 
