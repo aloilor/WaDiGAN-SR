@@ -216,7 +216,7 @@ def sample_and_test(args):
                 save_dir, 'tot_hr_id{}.png'.format(iteration)), normalize=True)
             for i, x in enumerate(hr):
                 torchvision.utils.save_image(x, os.path.join(
-                    save_dir, '{}_{}hr.png'.format(iteration, i)), normalize = True)
+                    save_dir, '{}_{}_hr.png'.format(iteration, i)), normalize = True)
 
             
             # saving LR test set images 
@@ -224,7 +224,7 @@ def sample_and_test(args):
                 save_dir, 'tot_lr_id{}.png'.format(iteration)), normalize=True)
             for i, x in enumerate(lr):
                 torchvision.utils.save_image(x, os.path.join(
-                    save_dir, '{}_{}lr.png'.format(iteration, i)), normalize = True)
+                    save_dir, '{}_{}_lr.png'.format(iteration, i)), normalize = True)
 
             
             #savig sr images
@@ -232,7 +232,7 @@ def sample_and_test(args):
                 resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(iteration)), nrow=8, padding=0)
             for i, x in enumerate(resoluted):
                 torchvision.utils.save_image(x, os.path.join(
-                    save_dir, '{}_{}sr.png'.format(iteration, i)), normalize = True)
+                    save_dir, '{}_{}_sr.png'.format(iteration, i)), normalize = True)
 
 
             print("Results are saved at tot_sr_id{}.jpg".format(iteration))
