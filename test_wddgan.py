@@ -180,17 +180,9 @@ def sample_and_test(args):
         idx = 0
         for iteration, sample in enumerate(test_data_loader):
             print("iteration: ", iteration)
-            idx += 1
             hr = sample['HR'] 
             lr = sample['SR'] 
             index = sample['Index']
-            
-            # saving HR images 
-            torchvision.utils.save_image(hr, os.path.join(
-                save_dir, 'tot_hr_id{}.png'.format(idx)), normalize=True)
-            # saving LR test set images 
-            torchvision.utils.save_image(lr, os.path.join(
-                save_dir, 'tot_lr_id{}.png'.format(idx)), normalize=True)
 
 
             lr = lr.to(device, non_blocking=True)
@@ -218,10 +210,33 @@ def sample_and_test(args):
             resoluted = torch.clamp(resoluted, -1, 1)
 
             resoluted = to_range_0_1(resoluted)  # 0-1
+
+            # saving HR images 
+            torchvision.utils.save_image(hr, os.path.join(
+                save_dir, 'tot_hr_id{}.png'.format(iteration)), normalize=True)
+            for i, x in enumerate(hr):
+                torchvision.utils.save_image(x, os.path.join(
+                    save_dir, '{}_{}hr.png'.format(iteration, i)), normalize = True)
+
+            
+            # saving LR test set images 
+            torchvision.utils.save_image(lr, os.path.join(
+                save_dir, 'tot_lr_id{}.png'.format(iteration)), normalize=True)
+            for i, x in enumerate(lr):
+                torchvision.utils.save_image(x, os.path.join(
+                    save_dir, '{}_{}lr.png'.format(iteration, i)), normalize = True)
+
+            
+            #savig sr images
             torchvision.utils.save_image(
-                resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(idx)), nrow=8, padding=0)
-            print("Results are saved at tot_sr_id{}.jpg".format(idx))
-            if (iteration >= 10):
+                resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(iteration)), nrow=8, padding=0)
+            for i, x in enumerate(lr):
+                torchvision.utils.save_image(x, os.path.join(
+                    save_dir, '{}_{}sr.png'.format(iteration, i)), normalize = True)
+
+
+            print("Results are saved at tot_sr_id{}.jpg".format(iteration))
+            if (iteration >= 5):
                 exit(0)
 
 
