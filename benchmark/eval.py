@@ -13,7 +13,8 @@ if __name__ == "__main__":
 
     real_names.sort()
     fake_names.sort()
-
+    
+    print(real_names,fake_names)
     avg_psnr = 0.0
     avg_ssim = 0.0
     idx = 0
