@@ -63,6 +63,9 @@ def sample_and_test(args):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
+    if not os.path.exists(os.path.join(save_dir,'fid')):
+        os.makedirs(os.path.join(save_dir,'fid'))
+
     # test set
     dataset = create_dataset(args)
 
