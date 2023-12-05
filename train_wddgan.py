@@ -191,8 +191,6 @@ def train(rank, gpu, args):
         global_step, epoch, init_epoch = 0, 0, 0
 
 
-    loss_file = open('{}/losses.txt'.format(exp_path), 'a') # saving losses in it 
-
 
     print("Starting training loop. \n")
     for epoch in range(init_epoch, args.num_epoch + 1):
@@ -323,8 +321,11 @@ def train(rank, gpu, args):
             global_step += 1
             if iteration % 100 == 0:
                 if rank == 0:
+                    
+                    loss_file = open('{}/losses.txt'.format(exp_path), 'a') # saving losses in it 
                     loss_file.write('epoch {} iteration{}, G Loss: {}, D Loss: {}\n'.format(
                         epoch, iteration, errG.item(), errD.item()))
+                    loss_file.close()
                     print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(
                         epoch, iteration, errG.item(), errD.item()))
 
