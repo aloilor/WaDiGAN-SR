@@ -21,19 +21,12 @@ def sample_and_test(args):
     torch.manual_seed(args.seed)
     device = 'cuda:0'
 
-    if args.dataset == 'cifar10':
-        real_img_dir = 'pytorch_fid/cifar10_train_stat.npy'
-    elif args.dataset == 'celeba_256':
-        real_img_dir = 'pytorch_fid/celebahq_stat.npy'
-    elif args.dataset == 'lsun':
-        real_img_dir = 'pytorch_fid/lsun_church_stat.npy'
+    if args.dataset == 'celebahq_16_128':
+        real_img_dir = 'pytorch_fid/celebahq_128_stat.npz'
     else:
         real_img_dir = args.real_img_dir
 
    
-    res_dir = "/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/results".format(
-        args.dataset, args.exp)
-
     def to_range_0_1(x):
         return (x + 1.) / 2.
 
@@ -111,14 +104,12 @@ def sample_and_test(args):
         # MEASURE PERFORMANCE
         with torch.no_grad():
             for rep in range(repetitions):
-                sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
-                hr = sample['HR'] 
-                lr = sample['SR'] 
-                index = sample['Index']
-
+                
                 print("computing time, repetition number: ", rep)
                 sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
                 lr = sample['SR'] 
+                index = sample['Index']
+
                 lr = lr.to(device, non_blocking=True)
                 # wavelet transform lr image
                 for i in range(num_levels):
@@ -147,33 +138,43 @@ def sample_and_test(args):
         exit(0)
 
     if args.compute_fid:
-        for i in range(iters_needed):
+        for i in range(23):
             with torch.no_grad():
+
+                sample = next(iter(test_data_loader))
+                lr = sample['SR'] 
+                
+                lr = lr.to(device, non_blocking=True)
+                # wavelet transform lr image
+                for i in range(num_levels):
+                    lrll, lrlh, lrhl, lrhh = dwt(lr)
+                lrw = torch.cat([lrll, lrlh, lrhl, lrhh], dim=1) # [b, 12, h/2, w/2]
+                # normalize sr_data
+                lrw = lrw / 2.0  # [-1, 1]
+                assert -1 <= lrw.min() < 0
+                assert 0 < lrw.max() <= 1
+
                 x_t_1 = torch.randn(
-                    args.batch_size, args.num_channels, args.image_size, args.image_size).to(device)
-                fake_sample = sample_from_model(
-                    pos_coeff, netG, args.num_timesteps, x_t_1, T, args)
+                    args.batch_size, int (args.num_channels / 2), args.image_size, args.image_size).to(device)
+                resoluted = sample_from_model(
+                    pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
 
-                fake_sample *= 2
-                if not args.use_pytorch_wavelet:
-                    fake_sample = iwt(
-                        fake_sample[:, :3], fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12])
-                else:
-                    fake_sample = iwt((fake_sample[:, :3], [torch.stack(
-                        (fake_sample[:, 3:6], fake_sample[:, 6:9], fake_sample[:, 9:12]), dim=2)]))
-                fake_sample = torch.clamp(fake_sample, -1, 1)
+                resoluted *= 2
+                resoluted = iwt(
+                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+                resoluted = torch.clamp(resoluted, -1, 1)
 
-                fake_sample = to_range_0_1(fake_sample)  # 0-1
-                for j, x in enumerate(fake_sample):
+                resoluted = to_range_0_1(resoluted)  # 0-1
+                for j, x in enumerate(resoluted):
                     index = i * args.batch_size + j
                     torchvision.utils.save_image(
-                        x, '{}/{}.jpg'.format(save_dir, index))
+                        x, '{}/fid/{}.jpg'.format(save_dir, index))
                 print('generating batch ', i)
 
-        paths = [save_dir, real_img_dir]
+        paths = [os.path.join(save_dir,'fid'), real_img_dir]
         print(paths)
 
-        kwargs = {'batch_size': 100, 'device': device, 'dims': 2048}
+        kwargs = {'batch_size': args.batch_size, 'device': device, 'dims': 2048}
         fid = calculate_fid_given_paths(paths=paths, **kwargs)
         print('FID = {}'.format(fid))
     else:
@@ -227,7 +228,7 @@ def sample_and_test(args):
                     save_dir, '{}_{}_lr.png'.format(iteration, i)), normalize = True)
 
             
-            #savig sr images
+            #saving sr images
             torchvision.utils.save_image(
                 resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(iteration)), nrow=8, padding=0)
             for i, x in enumerate(resoluted):
