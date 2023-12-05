@@ -60,8 +60,8 @@ def train(rank, gpu, args):
     # train set and test set
     dataset = create_dataset(args)
 
-    train_size = int(0.95 * len(dataset))  # 95% for training
-    test_size = len(dataset) - train_size  # 5% for testing
+    train_size = int(0.75 * len(dataset))  # 75% for training
+    test_size = len(dataset) - train_size  # 25% for testing
       
     # Set a seed for reproducibility
     torch.manual_seed(42) 
