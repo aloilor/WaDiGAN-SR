@@ -77,7 +77,7 @@ def sample_and_test(args):
     train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
 
     # test loader
-    test_data_loader = torch.utils.data.DataLoader(train_set,
+    test_data_loader = torch.utils.data.DataLoader(test_set,
                                               batch_size=args.batch_size,
                                               shuffle=False,
                                               num_workers=args.num_workers,
@@ -141,7 +141,7 @@ def sample_and_test(args):
         exit(0)
 
     if args.compute_fid:
-        for i in range(100):
+        for i in range(23):
             with torch.no_grad():
 
                 sample = next(iter(test_data_loader))
@@ -177,7 +177,7 @@ def sample_and_test(args):
         paths = [os.path.join(save_dir,'fid'), real_img_dir]
         print(paths)
 
-        kwargs = {'batch_size': args.batch_size, 'device': device, 'dims': 2048}
+        kwargs = {'batch_size': args.batch_size, 'device': device, 'dims': 768}
         fid = calculate_fid_given_paths(paths=paths, **kwargs)
         print('FID = {}'.format(fid))
     else:
