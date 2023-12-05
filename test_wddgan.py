@@ -149,7 +149,7 @@ def sample_and_test(args):
                 
                 lr = lr.to(device, non_blocking=True)
                 # wavelet transform lr image
-                for i in range(num_levels):
+                for z in range(num_levels):
                     lrll, lrlh, lrhl, lrhh = dwt(lr)
                 lrw = torch.cat([lrll, lrlh, lrhl, lrhh], dim=1) # [b, 12, h/2, w/2]
                 # normalize sr_data
