@@ -319,7 +319,7 @@ def train(rank, gpu, args):
             optimizerG.step()
 
             global_step += 1
-            if iteration % 100 == 0:
+            if iteration % 100 == 0 and iteration != 0:
                 if rank == 0:
                     
                     loss_file = open('{}/losses.txt'.format(exp_path), 'a') # saving losses in it 
