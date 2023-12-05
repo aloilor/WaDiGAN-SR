@@ -60,8 +60,8 @@ def train(rank, gpu, args):
     # train set and test set
     dataset = create_dataset(args)
 
-    train_size = int(0.80 * len(dataset))  # 75% for training
-    test_size = len(dataset) - train_size  # 25% for testing
+    train_size = int(0.80 * len(dataset))  # 80% for training
+    test_size = len(dataset) - train_size  # 20% for testing
       
     # Set a seed for reproducibility
     torch.manual_seed(42) 
@@ -189,6 +189,9 @@ def train(rank, gpu, args):
               .format(checkpoint['epoch']))
     else:
         global_step, epoch, init_epoch = 0, 0, 0
+
+
+    loss_file = open('{}/losses.txt'.format(exp_path), 'a') # saving losses in it 
 
 
     print("Starting training loop. \n")
@@ -320,6 +323,8 @@ def train(rank, gpu, args):
             global_step += 1
             if iteration % 100 == 0:
                 if rank == 0:
+                    loss_file.write('epoch {} iteration{}, G Loss: {}, D Loss: {}\n'.format(
+                        epoch, iteration, errG.item(), errD.item()))
                     print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(
                         epoch, iteration, errG.item(), errD.item()))
 
