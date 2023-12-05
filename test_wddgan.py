@@ -177,7 +177,7 @@ def sample_and_test(args):
         paths = [os.path.join(save_dir,'fid'), real_img_dir]
         print(paths)
 
-        kwargs = {'batch_size': args.batch_size, 'device': device, 'dims': 768}
+        kwargs = {'batch_size': args.batch_size, 'device': device, 'dims': 2048}
         fid = calculate_fid_given_paths(paths=paths, **kwargs)
         print('FID = {}'.format(fid))
     else:
