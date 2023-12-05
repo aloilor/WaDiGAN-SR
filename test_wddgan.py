@@ -77,7 +77,7 @@ def sample_and_test(args):
     train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
 
     # test loader
-    test_data_loader = torch.utils.data.DataLoader(test_set,
+    test_data_loader = torch.utils.data.DataLoader(train_set,
                                               batch_size=args.batch_size,
                                               shuffle=False,
                                               num_workers=args.num_workers,
