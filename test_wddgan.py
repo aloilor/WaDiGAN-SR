@@ -168,7 +168,7 @@ def sample_and_test(args):
                 for j, x in enumerate(resoluted):
                     index = i * args.batch_size + j
                     torchvision.utils.save_image(
-                        x, '{}/fid/{}.jpg'.format(save_dir, index))
+                        x, '{}fid/{}.jpg'.format(save_dir, index))
                 print('generating batch ', i)
 
         paths = [os.path.join(save_dir,'fid'), real_img_dir]
