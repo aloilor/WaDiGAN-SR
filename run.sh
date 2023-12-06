@@ -84,7 +84,7 @@ else
 			--ch_mult 1 2 2 2 4 --num_timesteps 2 --num_res_blocks 2  --epoch_id 100 \
 			--current_resolution 32 --attn_resolutions 16 \
 			--net_type wavelet \
-			--l_resolution 16 --h_resolution 128 \
+			--l_resolution 16 --h_resolution 64 \
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_64/ \
 			--batch_size 64 \
 			--compute_fid --real_img_dir ./pytorch_fid/celebahq_64_stats.npz \
