@@ -69,8 +69,8 @@ else
 	echo "==> Testing WaveDiff"
 
 	if [[ $DATASET == celebahq_16_128 ]]; then
-		python test_wddgan.py --dataset celebahq_16_128 --image_size 128 --exp srwavediff_celebahq_exp1_atn16_wg12224_d5_recloss_500ep --num_channels 24 --num_channels_dae 64 \
-			--ch_mult 1 2 2 2 4 --num_timesteps 2 --num_res_blocks 2  --epoch_id 129 \
+		python test_wddgan.py --dataset celebahq_16_128 --image_size 128 --exp srwavediff_celebahq_16_128_exp2_atn16_wg12224_d5_recloss_500ep --num_channels 24 --num_channels_dae 64 \
+			--ch_mult 1 2 2 2 4 --num_timesteps 2 --num_res_blocks 2  --epoch_id 17 \
 			--current_resolution 64 --attn_resolutions 16 \
 			--net_type wavelet \
 			--l_resolution 16 --h_resolution 128 \

@@ -69,7 +69,7 @@ def sample_and_test(args):
     # test set
     dataset = create_dataset(args)
 
-    train_size = int(0.95 * len(dataset))  # 95% for training
+    train_size = int(0.80 * len(dataset))  # 95% for training
     test_size = len(dataset) - train_size  # 5% for testing
       
     # Set a seed for reproducibility
@@ -141,7 +141,7 @@ def sample_and_test(args):
         exit(0)
 
     if args.compute_fid:
-        for i in range(33):
+        for i in range(90):
             with torch.no_grad():
 
                 sample = next(iter(test_data_loader))
