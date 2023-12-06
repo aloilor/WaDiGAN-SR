@@ -71,7 +71,7 @@ def sample_and_test(args):
     # test set
     dataset = create_dataset(args)
 
-    train_size = int(0.80 * len(dataset))  # 95% for training
+    train_size = int(0.95 * len(dataset))  # 95% for training
     test_size = len(dataset) - train_size  # 5% for testing
       
     # Set a seed for reproducibility
