@@ -80,7 +80,7 @@ def sample_and_test(args):
     test_data_loader = torch.utils.data.DataLoader(test_set,
                                               batch_size=args.batch_size,
                                               shuffle=False,
-                                              num_workers=args.num_workers,
+                                              num_workers=0,
                                               pin_memory=True)
 
 
