@@ -22,13 +22,13 @@ if [[ $MODE == train ]]; then
 	echo "==> Training SRWaveDiff"
 
 	if [[ $DATASET == celebahq_16_128 ]]; then #same as celebahq_256 - might need to revisit later
-		python train_wddgan.py --dataset celebahq_16_128 --image_size 128 --exp srwavediff_celebahq16_128_exp3_atn16_wg12224_d5_recloss_350ep --num_channels 24 \
+		python train_wddgan.py --dataset celebahq_16_128 --image_size 128 --exp celebahq16_128_exp3_atn16_wg12224_d6_recloss_350ep --num_channels 24 \
 			--num_channels_dae 64 --ch_mult 1 2 2 2 4 --num_timesteps 2 \
 			--num_res_blocks 2 --batch_size 64 --num_epoch 350 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
 			--z_emb_dim 256 --lr_d 1e-4 --lr_g 1.75e-4 --lazy_reg 10 --save_content \
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_128/ \
 			--master_port $MASTER_PORT \
-			--current_resolution 64 --attn_resolution 16 --num_disc_layers 5 --rec_loss \
+			--current_resolution 64 --attn_resolution 16 --num_disc_layers 6 --rec_loss \
 			--net_type wavelet \
 			--l_resolution 16 --h_resolution 128 \
 
