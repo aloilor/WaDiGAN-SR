@@ -76,7 +76,18 @@ else
 			--l_resolution 16 --h_resolution 128 \
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_128/ \
 			--batch_size 64 \
-			--compute_fid --real_img_dir ./pytorch_fid/celebahq_128_stat.npy \
+			--compute_fid --real_img_dir ./pytorch_fid/celebahq_128_stats.npz \
+			# --measure_time \
+
+	elif [[ $DATASET == celebahq_16_64 ]]; then
+		python test_wddgan.py --dataset celebahq_16_64 --image_size 64 --exp srwavediff_celebahq16-64_exp3_atn16_wg12224_d5_recloss_500ep --num_channels 24 --num_channels_dae 64 \
+			--ch_mult 1 2 2 2 4 --num_timesteps 2 --num_res_blocks 2  --epoch_id 100 \
+			--current_resolution 32 --attn_resolutions 16 \
+			--net_type wavelet \
+			--l_resolution 16 --h_resolution 128 \
+			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_64/ \
+			--batch_size 64 \
+			--compute_fid --real_img_dir ./pytorch_fid/celebahq_64_stats.npz \
 			# --measure_time \
 
 	elif [[ $DATASET == celeba_256 ]]; then

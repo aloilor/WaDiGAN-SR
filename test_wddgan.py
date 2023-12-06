@@ -22,7 +22,9 @@ def sample_and_test(args):
     device = 'cuda:0'
 
     if args.dataset == 'celebahq_16_128':
-        real_img_dir = 'pytorch_fid/celebahq_128_stat.npz'
+        real_img_dir = 'pytorch_fid/celebahq_128_stats.npz'
+    elif args.dataset == 'celebahq_16_64':
+        real_img_dir = 'pytorch_fid/celebahq_64_stats.npz'
     else:
         real_img_dir = args.real_img_dir
 
