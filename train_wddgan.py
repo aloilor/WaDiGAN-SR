@@ -104,19 +104,23 @@ def train(rank, gpu, args):
     G_NET_ZOO = {"normal": NCSNpp, "wavelet": WaveletNCSNpp}
     gen_net = G_NET_ZOO[args.net_type]
     disc_net = [Discriminator_small, Discriminator_large]
-    print("GEN: {}, DISC: {}".format(gen_net, disc_net))
     netG = gen_net(args).to(device)
 
-    if args.dataset in ['celebahq_16_64', 'celebahq_16_128']:
+    if args.dataset in ['celebahq_16_64']:
         # small images disc
+        print("Small images disc\n")
         netD = disc_net[0](nc=args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
-    else:
+    elif args.dataset in ['celebahq_16_128']:
         # large images disc
+        print("Large images disc\n")
         netD = disc_net[1](nc=args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
+
+    print("GEN: {}, DISC: {}".format(gen_net, disc_net))
+
 
     broadcast_params(netG.parameters())
     broadcast_params(netD.parameters())
