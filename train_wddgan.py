@@ -60,7 +60,6 @@ def train(rank, gpu, args):
                             os.path.join(exp_path, 'score_sde/models'))
    
     # wandb init
-    wandb.login()
     run = wandb.init(
         # Set the project where this run will be logged
         project="srwavediff",
