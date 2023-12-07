@@ -61,10 +61,11 @@ def train(rank, gpu, args):
    
     # wandb init
     wandb.login()
-    wandb.init(
+    run = wandb.init(
         # Set the project where this run will be logged
         project="srwavediff",
         name="experiment_1",
+        resume=True,
         # Track hyperparameters and run metadata
         config={
             "epochs": args.num_epoch,
@@ -129,12 +130,10 @@ def train(rank, gpu, args):
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
     elif args.dataset in ['celebahq_16_128']:
         # large images disc
-        print("Large images disc\n")
+        print("GEN: {}, DISC: large images disc\n".format(gen_net))
         netD = disc_net[1](nc=args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
-
-    print("GEN: {}, DISC: {}".format(gen_net, disc_net))
 
 
     broadcast_params(netG.parameters())
@@ -209,8 +208,7 @@ def train(rank, gpu, args):
     else:
         global_step, epoch, init_epoch = 0, 0, 0
 
-
-
+    print("Initial disc learning rate: {} ---- Initial gen learning rate: {} \n".format(args.lr_d,args.lr_g))
     print("Starting training loop. \n")
     for epoch in range(init_epoch, args.num_epoch + 1):
         train_sampler.set_epoch(epoch)
