@@ -8,6 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
+import wandb
+
 from datasets_prep.dataset import create_dataset
 from diffusion import sample_from_model, sample_posterior, \
     q_sample_pairs, get_time_schedule, \
@@ -56,6 +58,19 @@ def train(rank, gpu, args):
             copy_source(__file__, exp_path)
             shutil.copytree('score_sde/models',
                             os.path.join(exp_path, 'score_sde/models'))
+   
+    # wandb init
+    wandb.login()
+    wandb.init(
+        # Set the project where this run will be logged
+        project="srwavediff",
+        name="experiment_1",
+        # Track hyperparameters and run metadata
+        config={
+            "epochs": args.num_epoch,
+        },
+    )
+
 
     # train set and test set
     dataset = create_dataset(args)
@@ -332,13 +347,15 @@ def train(rank, gpu, args):
                     loss_file.close()
                     print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(
                         epoch, iteration, errG.item(), errD.item()))
+                    wandb.log({"gen_loss": errG.item(), "disc_loss": errD.item()})
+
 
         if not args.no_lr_decay:
             schedulerG.step()
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 1 == 0:
+            if epoch % 5 == 0:
                 # saving SR images 
                 torchvision.utils.save_image(sr_image, os.path.join(
                     exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
@@ -374,14 +391,7 @@ def train(rank, gpu, args):
                          resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
                     resoluted_train = iwt(
                          resoluted_train[:, :3], resoluted_train[:, 3:6], resoluted_train[:, 6:9], resoluted_train[:, 9:12])
-                else:
-                    x_0_predict = iwt((x_0_predict[:, :3], [torch.stack(
-                        (x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12]), dim=2)]))
-                    real_data = iwt((real_data[:, :3], [torch.stack(
-                        (real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12]), dim=2)]))
-                    resoluted = iwt((resoluted[:, :3], [torch.stack(
-                        (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
-
+            
                 x_0_predict = (torch.clamp(x_0_predict, -1, 1) + 1) / 2  # 0-1
                 real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
                 resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
@@ -428,7 +438,7 @@ def train(rank, gpu, args):
 # %%
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('ddgan parameters')
-    parser.add_argument('--seed', type=int, default=1024,
+    parser.add_argument('--seed', type=int, default=42,
                         help='seed used for initialization')
 
     parser.add_argument('--resume', action='store_true', default=False)

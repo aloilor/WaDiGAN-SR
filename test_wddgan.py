@@ -71,8 +71,8 @@ def sample_and_test(args):
     # test set
     dataset = create_dataset(args)
 
-    train_size = int(0.80 * len(dataset))  # 95% for training
-    test_size = len(dataset) - train_size  # 5% for testing
+    train_size = int(0.80 * len(dataset))  # 80% for training
+    test_size = len(dataset) - train_size  # 20% for testing
       
     # Set a seed for reproducibility
     torch.manual_seed(42) 
