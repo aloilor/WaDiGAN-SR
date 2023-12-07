@@ -207,7 +207,6 @@ def train(rank, gpu, args):
     else:
         global_step, epoch, init_epoch = 0, 0, 0
 
-    print("Initial disc learning rate: {} ---- Initial gen learning rate: {} \n".format(args.lr_d,args.lr_g))
     print("Starting training loop. \n")
     for epoch in range(init_epoch, args.num_epoch + 1):
         train_sampler.set_epoch(epoch)
@@ -352,7 +351,7 @@ def train(rank, gpu, args):
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 5 == 0:
+            if epoch % 3 == 0:
                 # saving SR images 
                 torchvision.utils.save_image(sr_image, os.path.join(
                     exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
