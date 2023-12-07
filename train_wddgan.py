@@ -59,17 +59,17 @@ def train(rank, gpu, args):
             shutil.copytree('score_sde/models',
                             os.path.join(exp_path, 'score_sde/models'))
    
-    # wandb init
-    run = wandb.init(
-        # Set the project where this run will be logged
-        project="srwavediff",
-        name="experiment_1",
-        resume=True,
-        # Track hyperparameters and run metadata
-        config={
-            "epochs": args.num_epoch,
-        },
-    )
+    # # wandb init
+    # run = wandb.init(
+    #     # Set the project where this run will be logged
+    #     project="srwavediff",
+    #     name="experiment_1",
+    #     resume=True,
+    #     # Track hyperparameters and run metadata
+    #     config={
+    #         "epochs": args.num_epoch,
+    #     },
+    # )
 
 
     # train set and test set
@@ -343,7 +343,7 @@ def train(rank, gpu, args):
                     loss_file.close()
                     print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(
                         epoch, iteration, errG.item(), errD.item()))
-                    wandb.log({"gen_loss": errG.item(), "disc_loss": errD.item()})
+                    # wandb.log({"gen_loss": errG.item(), "disc_loss": errD.item()})
 
 
         if not args.no_lr_decay:
