@@ -22,8 +22,8 @@ iterations = [100 + 100 * i for i in range(num_iterations)]
 
 # Plotting the generator and discriminator loss
 plt.figure(figsize=(10, 6))
-plt.plot(iterations, generator_loss, label='Generator Loss', marker='o', linestyle='-', markersize=5)
-plt.plot(iterations, discriminator_loss, label='Discriminator Loss', marker='o', linestyle='-', markersize=5)
+plt.plot(iterations, generator_loss, label='Generator Loss', marker='o', linestyle='-', markersize=2.5)
+plt.plot(iterations, discriminator_loss, label='Discriminator Loss', marker='o', linestyle='-', markersize=2.5)
 plt.title('Generator and Discriminator Loss Over Iterations')
 plt.xlabel('Iterations')
 plt.ylabel('Loss')
