@@ -70,7 +70,6 @@ def sample_and_test(args):
 
     # test set
     dataset = create_dataset(args)
-
     train_size = int(0.80 * len(dataset))  # 80% for training
     test_size = len(dataset) - train_size  # 20% for testing
       
@@ -85,14 +84,12 @@ def sample_and_test(args):
                                               num_workers=0,
                                               pin_memory=True)
 
-
+    # wavelet pooling
     dwt = DWT_2D("haar")
     iwt = IDWT_2D("haar")
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
-
-
-    if args.measure_time:
+    if args.measure_time: # inference time eval
         x_t_1 = torch.randn(1, int(args.num_channels / 2),
                             args.image_size, args.image_size).to(device)
         # INIT LOGGERS
@@ -107,7 +104,7 @@ def sample_and_test(args):
             _ = sample_from_model(
                 pos_coeff, netG, args.num_timesteps, x_t_1, x_t_1, T, args)
         # MEASURE PERFORMANCE
-        with torch.no_grad():
+        with torch.no_grad(): 
             for rep in range(repetitions):
                 
                 print("computing time, repetition number: ", rep)
@@ -142,7 +139,7 @@ def sample_and_test(args):
         print("Inference time: {:.2f}+/-{:.2f}ms".format(mean_syn, std_syn))
         exit(0)
 
-    if args.compute_fid:
+    if args.compute_fid: # fid evaluation
         for i in range(90):
             with torch.no_grad():
 
@@ -182,7 +179,7 @@ def sample_and_test(args):
         kwargs = {'batch_size': args.batch_size, 'device': device, 'dims': 2048}
         fid = calculate_fid_given_paths(paths=paths, **kwargs)
         print('FID = {}'.format(fid))
-    else:
+    else: # super-resolution without evaluations
         idx = 0
         for iteration, sample in enumerate(test_data_loader):
             with torch.no_grad():
