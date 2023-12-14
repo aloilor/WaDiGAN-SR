@@ -370,7 +370,6 @@ def train(rank, gpu, args):
 
 
                     #inference on train batch
-                    x_t_1 = torch.randn_like(real_data)
                     resoluted_train = sample_from_model(
                         pos_coeff, netG, args.num_timesteps, x_t_1, sr_data, T, args)
 
