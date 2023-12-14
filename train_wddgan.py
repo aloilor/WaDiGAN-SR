@@ -411,15 +411,15 @@ def train(rank, gpu, args):
 
             if args.save_content:
                 if epoch % args.save_content_every == 0:
-                    print('Saving content.')
                     content = {'epoch': epoch + 1, 'global_step': global_step, 'args': args,
                                'netG_dict': netG.state_dict(), 'optimizerG': optimizerG.state_dict(),
                                'schedulerG': schedulerG.state_dict(), 'netD_dict': netD.state_dict(),
                                'optimizerD': optimizerD.state_dict(), 'schedulerD': schedulerD.state_dict()}
                     torch.save(content, os.path.join(exp_path, 'content.pth'))
+                    print('Content saved.')
+
 
             if epoch % args.save_ckpt_every == 0:
-                print("Saving checkpoint.")
                 if args.use_ema:
                     optimizerG.swap_parameters_with_ema(
                         store_params_in_ema=True)
@@ -429,6 +429,8 @@ def train(rank, gpu, args):
                 if args.use_ema:
                     optimizerG.swap_parameters_with_ema(
                         store_params_in_ema=True)
+                print("checkpoint saved.")
+
 
 
 # %%
