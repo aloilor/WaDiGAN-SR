@@ -13,5 +13,6 @@ pandas
 tqdm
 opencv-python
 wandb
+torchinfo
 
 

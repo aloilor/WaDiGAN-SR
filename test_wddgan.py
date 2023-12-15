@@ -5,12 +5,14 @@ import numpy as np
 import torch
 import torchvision
 
+
 from diffusion import get_time_schedule, Posterior_Coefficients, \
     sample_from_model
 
 from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
 from pytorch_fid.fid_score import calculate_fid_given_paths
 from pytorch_wavelets import DWTInverse
+from torchinfo import summary
 from score_sde.models.ncsnpp_generator_adagn import NCSNpp, WaveletNCSNpp
 from datasets_prep.dataset import create_dataset
 
@@ -40,6 +42,8 @@ def sample_and_test(args):
     gen_net = G_NET_ZOO[args.net_type]
     print("GEN: {}".format(gen_net))
 
+    print(summary(gen_net, input_size=(args.batch_size, 24, 64, 64)))
+
     netG = gen_net(args).to(device)
     ckpt = torch.load('/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/netG_{}.pth'.format(
         args.dataset, args.exp, args.epoch_id), map_location=device)
@@ -50,6 +54,9 @@ def sample_and_test(args):
 
     netG.load_state_dict(ckpt, strict=False)
     netG.eval()
+
+    print(summary(netG, input_size=(args.batch_size, 24, 64, 64)))
+
 
     if not args.use_pytorch_wavelet:
         iwt = IDWT_2D("haar")
