@@ -76,7 +76,7 @@ else
 			--l_resolution 16 --h_resolution 128 \
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_128/ \
 			--batch_size 1 \
-			--measure_time \
+			#--measure_time \
 			# --compute_fid --real_img_dir ./pytorch_fid/celebahq128_stats.npz \
 
 	elif [[ $DATASET == celebahq_16_64 ]]; then

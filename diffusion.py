@@ -1,6 +1,9 @@
 import numpy as np
 import torch
 
+from torchinfo import summary
+
+
 
 # %% Diffusion coefficients
 def var_func_vp(t, beta_min, beta_max):
@@ -168,6 +171,8 @@ def sample_from_model(coefficients, generator, n_time, x_init, x_cond, T, opt,):
             
             # x conditioned on LR 
             x_t_1 = torch.cat([x, x_cond], dim=1)
+
+            print(summary(generator, input_data=(x_t_1, t_time, latent_z)))
 
             x_0 = generator(x_t_1, t_time, latent_z)
             x_new = sample_posterior(coefficients, x_0, x, t) # x(t-1) fake

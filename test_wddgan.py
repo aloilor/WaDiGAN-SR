@@ -54,7 +54,6 @@ def sample_and_test(args):
     netG.load_state_dict(ckpt, strict=False)
     netG.eval()
 
-    print(summary(netG))
 
 
     if not args.use_pytorch_wavelet:
@@ -209,6 +208,7 @@ def sample_and_test(args):
                 resoluted = sample_from_model(
                     pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
 
+
                 resoluted *= 2
                 if not args.use_pytorch_wavelet:
                     resoluted = iwt(
@@ -243,7 +243,7 @@ def sample_and_test(args):
 
 
                 print("Results are saved at tot_sr_id{}.jpg".format(iteration))
-                if (iteration >= 5):
+                if (iteration >= 1):
                     exit(0)
 
 
