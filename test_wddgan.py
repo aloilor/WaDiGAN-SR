@@ -52,7 +52,7 @@ def sample_and_test(args):
         ckpt[key[7:]] = ckpt.pop(key)
 
     netG.load_state_dict(ckpt, strict=False)
-    netG.eval()
+    #netG.eval()
 
     #print(summary(netG, input_size=(args.batch_size, 24, 64, 64)))
 
@@ -217,9 +217,7 @@ def sample_and_test(args):
                 else:
                     resoluted = iwt((resoluted[:, :3], [torch.stack(
                         (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
-                resoluted = torch.clamp(resoluted, -1, 1)
-
-                resoluted = to_range_0_1(resoluted)  # 0-1
+                resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
 
                 # saving HR images 
                 torchvision.utils.save_image(hr, os.path.join(
