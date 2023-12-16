@@ -54,7 +54,7 @@ def sample_and_test(args):
     netG.load_state_dict(ckpt, strict=False)
     netG.eval()
 
-    print(summary(netG, input_size=args.net_type))
+    print(summary(netG, input_size=args))
 
 
     if not args.use_pytorch_wavelet:
