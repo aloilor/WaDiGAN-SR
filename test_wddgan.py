@@ -42,7 +42,6 @@ def sample_and_test(args):
     gen_net = G_NET_ZOO[args.net_type]
     print("GEN: {}".format(gen_net))
 
-    print(summary(gen_net, input_size=(args.batch_size, 24, 64, 64)))
 
     netG = gen_net(args).to(device)
     ckpt = torch.load('/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/netG_{}.pth'.format(
