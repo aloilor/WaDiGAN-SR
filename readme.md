@@ -21,6 +21,9 @@ For `pytorch_wavelets`, please follow [here](https://github.com/fbcotter/pytorch
 ## Dataset preparation ##
 We trained on CelebA HQ (16x16 -> 128x128). 
 
+If you don't have the data, you can prepare it in the following way: 
+Download [CelebaHQ 256x256](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256);
+
 We provide a script to prepare the dataset in PNG or LMDB format:
 ```
 # Resize to get 16×16 LR_IMGS and 128×128 HR_IMGS, then prepare 128×128 Fake SR_IMGS by bicubic interpolation
@@ -28,7 +31,7 @@ python datasets_prep/prepare_data.py  --path [dataset root]  --out [output root]
 ```
 
 
-Once a dataset is downloaded, please put it in `data/` directory as follows:
+Once a dataset is downloaded and prepared, please put it in `data/` directory as follows:
 ```
 data/
 ├── celebahq_16_128
