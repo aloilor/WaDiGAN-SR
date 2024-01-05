@@ -53,7 +53,7 @@ Note, please set argument `--exp` correspondingly for both `train` and `test` mo
 **GPU allocation**: Our work is experimented on a single NVIDIA Tesla T4 GPU 15GBs.
 
 ## Results ##
-Model performance and pretrained checkpoints are provided as below:
+Comparisons between our model and SR3 (both trained on 25k iteration steps) are below:
 <table>
   <tr>
     <th>Metric</th>
