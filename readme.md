@@ -100,4 +100,7 @@ python /benchmark/eval.py -p [result root]
 ```
 
 ## Acknowledgments
+WaveDiff [implementation](https://github.com/VinAIResearch/WaveDiff) and [paper](https://arxiv.org/abs/2211.16152);
+SR3 unofficial [implementation](https://github.com/Janspiry/Image-Super-Resolution-via-Iterative-Refinement/tree/master) and [paper](https://arxiv.org/abs/2104.07636)
+
 Thanks to Phung et al for releasing their official implementation of the [WaveDiff]([https://github.com/NVlabs/denoising-diffusion-gan.git](https://github.com/VinAIResearch/WaveDiff)) paper. For wavelet transformations, we utilize implementations from [WaveCNet](https://github.com/LiQiufu/WaveCNet.git) and [pytorch_wavelets](https://github.com/fbcotter/pytorch_wavelets.git).
