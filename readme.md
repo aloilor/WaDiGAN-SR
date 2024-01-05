@@ -23,7 +23,7 @@ We trained on CelebA HQ (16x16 -> 128x128).
 
 If you don't have the data, you can prepare it in the following way:
 
-Download [CelebaHQ 256x256](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256);
+Download [CelebaHQ 256x256](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256).
 
 Use the following script to prepare the dataset in PNG or LMDB format:
 ```
