@@ -8,14 +8,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
-import wandb
 
 from datasets_prep.dataset import create_dataset
 from diffusion import sample_from_model, sample_posterior, \
     q_sample_pairs, get_time_schedule, \
     Posterior_Coefficients, Diffusion_Coefficients
 from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
-from pytorch_wavelets import DWTForward, DWTInverse
 from torch.multiprocessing import Process
 from utils import init_processes, copy_source, broadcast_params
 
@@ -160,9 +158,7 @@ def train(rank, gpu, args):
     if not args.use_pytorch_wavelet:
         dwt = DWT_2D("haar")
         iwt = IDWT_2D("haar")
-    else:
-        dwt = DWTForward(J=1, mode='zero', wave='haar').cuda()
-        iwt = DWTInverse(mode='zero', wave='haar').cuda()
+
 
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
@@ -171,9 +167,7 @@ def train(rank, gpu, args):
     if not args.use_pytorch_wavelet:
         for i in range(num_levels):
             test_srll, test_srlh, test_srhl, test_srhh = dwt(test_sr)
-    else:
-        test_srll, test_srh = dwt(test_sr)  # [b, 3, h, w], [b, 3, 3, h, w]
-        test_srlh, test_srhl, test_srhh = torch.unbind(test_sr[0], dim=2)
+
     
     test_sr_data = torch.cat([test_srll, test_srlh, test_srhl, test_srhh], dim=1) # [b, 12, h/2, w/2]
 
@@ -232,10 +226,8 @@ def train(rank, gpu, args):
             # wavelet transform x0 - hr images
             if not args.use_pytorch_wavelet:
                 for i in range(num_levels):
-                    xll, xlh, xhl, xhh = dwt(x0)
-            else:
-                xll, xh = dwt(x0)  # [b, 3, h, w], [b, 3, 3, h, w]
-                xlh, xhl, xhh = torch.unbind(xh[0], dim=2)
+                    xll, xlh, xhl, xhh = dwt(x0) # [b, 3, h, w], [b, 3, 3, h, w]
+
 
             real_data = torch.cat([xll, xlh, xhl, xhh], dim=1)  # [b, 12, h/2, w/2]
 
@@ -252,9 +244,6 @@ def train(rank, gpu, args):
             if not args.use_pytorch_wavelet:
                 for i in range(num_levels):
                     srll, srlh, srhl, srhh = dwt(sr)
-            else:
-                srll, srh = dwt(sr)  # [b, 3, h, w], [b, 3, 3, h, w]
-                srlh, srhl, srhh = torch.unbind(srh[0], dim=2)
             
             sr_data = torch.cat([srll, srlh, srhl, srhh], dim=1) # [b, 12, h/2, w/2]
 

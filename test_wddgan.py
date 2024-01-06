@@ -11,8 +11,6 @@ from diffusion import get_time_schedule, Posterior_Coefficients, \
 
 from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
 from pytorch_fid.fid_score import calculate_fid_given_paths
-from pytorch_wavelets import DWTInverse
-from torchinfo import summary
 from score_sde.models.ncsnpp_generator_adagn import NCSNpp, WaveletNCSNpp
 from datasets_prep.dataset import create_dataset
 
@@ -58,8 +56,7 @@ def sample_and_test(args):
 
     if not args.use_pytorch_wavelet:
         iwt = IDWT_2D("haar")
-    else:
-        iwt = DWTInverse(mode='zero', wave='haar').cuda()
+
     T = get_time_schedule(args, device)
 
     pos_coeff = Posterior_Coefficients(args, device)
@@ -213,9 +210,7 @@ def sample_and_test(args):
                 if not args.use_pytorch_wavelet:
                     resoluted = iwt(
                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
-                else:
-                    resoluted = iwt((resoluted[:, :3], [torch.stack(
-                        (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
+
                 resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
 
                 # saving HR images 
