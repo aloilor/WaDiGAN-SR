@@ -201,7 +201,7 @@ def sample_and_test(args):
                 assert 0 < lrw.max() <= 1
 
                 x_t_1 = torch.randn_like(lrw).to(device)
-                resoluted, diff_process = sample_from_model(
+                resoluted = sample_from_model(
                     pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
 
 
