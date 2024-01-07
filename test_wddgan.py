@@ -213,7 +213,7 @@ def sample_and_test(args):
                     #     diff_process[:, :3], diff_process[:, 3:6], diff_process[:, 6:9], diff_process[:, 9:12])
 
                 resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
-                resoluted = (torch.clamp(diff_process, -1, 1) + 1) / 2  # 0-1
+                #diff_process = (torch.clamp(diff_process, -1, 1) + 1) / 2  # 0-1
 
 
                 # saving HR images 
