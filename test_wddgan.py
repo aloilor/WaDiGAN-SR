@@ -182,7 +182,6 @@ def sample_and_test(args):
         fid = calculate_fid_given_paths(paths=paths, **kwargs)
         print('FID = {}'.format(fid))
     else: # super-resolution without evaluations
-        idx = 0
         for iteration, sample in enumerate(test_data_loader):
             with torch.no_grad():
                 print("iteration: ", iteration)
