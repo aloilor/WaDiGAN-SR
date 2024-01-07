@@ -6,7 +6,8 @@
 5. [Evaluation](#evaluation)
 6. [Acknowledgments](#acknowledgments)
 
-WaveDiff is a novel wavelet-based diffusion scheme that employs low-and-high frequency components of wavelet subbands from both image and feature levels. These are adaptively implemented to accelerate the sampling process while maintaining good generation quality. Experimental results on CelebA-HQ, CIFAR-10, LSUN-Church, and STL-10 datasets show that WaveDiff provides state-of-the-art training and inference speed, which serves as a stepping-stone to offering real-time and high-fidelity diffusion models.
+This study introduces a wavelet-based conditional diffusion scheme to address speed limitations in Image Super-Resolution Diffusion Models. Utilizing discrete wavelet transform on both image and feature levels, it efficiently reduces training and inference times while maintaining high-fidelity output. The study focuses on Single-Image Super-Resolution, demonstrating effectiveness through experimental validation on CelebA-HQ. This approach offers a practical solution for real-time implementation, contributing to the development of efficient diffusion models in image super-resolution.
+
 
 
 ## Installation ##
