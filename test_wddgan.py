@@ -240,8 +240,8 @@ def sample_and_test(args):
                 #         save_dir, '{}_{}_sr.png'.format(iteration, i)), normalize = True)
                 
                 # saving diff process
-                torchvision.utils.save_image(
-                    diff_process, os.path.join (save_dir,'sr_diff_proc_id{}.jpg'.format(iteration)), normalize=True)
+                # torchvision.utils.save_image(
+                #     diff_process, os.path.join (save_dir,'sr_diff_proc_id{}.jpg'.format(iteration)), normalize=True)
 
 
                 print("Results are saved at tot_sr_id{}.jpg".format(iteration))
