@@ -11,13 +11,12 @@ This study introduces a wavelet-based conditional diffusion scheme to address sp
 
 
 ## Installation ##
-Python `3.7.13` and Pytorch `1.11.0` are used in this implementation.
+Python `3.10.12` and Pytorch `1.11.0` are used in this implementation.
 
 You can install neccessary libraries as follows:
 ```bash
 pip install -r requirements.txt
 ```
-For `pytorch_wavelets`, please follow [here](https://github.com/fbcotter/pytorch_wavelets.git).
 
 ## Dataset preparation ##
 We trained on CelebA HQ (16x16 -> 128x128). 
