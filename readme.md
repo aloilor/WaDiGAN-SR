@@ -11,7 +11,7 @@ This study introduces a wavelet-based conditional diffusion scheme to address sp
 
 
 ## Installation ##
-Python `3.7.13` and Pytorch `1.11.0` are used in this implementation.
+Python `3.10.12` and Pytorch `1.11.0` are used in this implementation.
 
 You can install neccessary libraries as follows:
 ```bash
