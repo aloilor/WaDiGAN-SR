@@ -209,8 +209,8 @@ def sample_and_test(args):
                 if not args.use_pytorch_wavelet:
                     resoluted = iwt(
                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
-                    diff_process = iwt(
-                        diff_process[:, :3], diff_process[:, 3:6], diff_process[:, 6:9], diff_process[:, 9:12])
+                    # diff_process = iwt(
+                    #     diff_process[:, :3], diff_process[:, 3:6], diff_process[:, 6:9], diff_process[:, 9:12])
 
                 resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
                 resoluted = (torch.clamp(diff_process, -1, 1) + 1) / 2  # 0-1
