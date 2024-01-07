@@ -201,7 +201,7 @@ def sample_and_test(args):
                 assert 0 < lrw.max() <= 1
 
                 x_t_1 = torch.randn_like(lrw).to(device)
-                resoluted = sample_from_model(
+                resoluted, diff_process = sample_from_model(
                     pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
 
 
@@ -209,8 +209,12 @@ def sample_and_test(args):
                 if not args.use_pytorch_wavelet:
                     resoluted = iwt(
                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+                    diff_process = iwt(
+                        diff_process[:, :3], diff_process[:, 3:6], diff_process[:, 6:9], diff_process[:, 9:12])
 
                 resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
+                resoluted = (torch.clamp(diff_process, -1, 1) + 1) / 2  # 0-1
+
 
                 # saving HR images 
                 torchvision.utils.save_image(hr, os.path.join(
@@ -234,6 +238,10 @@ def sample_and_test(args):
                 # for i, x in enumerate(resoluted): # save each image
                 #     torchvision.utils.save_image(x, os.path.join(
                 #         save_dir, '{}_{}_sr.png'.format(iteration, i)), normalize = True)
+                
+                # saving diff process
+                torchvision.utils.save_image(
+                    diff_process, os.path.join (save_dir,'sr_diff_proc_id{}.jpg'.format(iteration)), normalize=True)
 
 
                 print("Results are saved at tot_sr_id{}.jpg".format(iteration))
