@@ -206,15 +206,15 @@ def sample_and_test(args):
 
 
                 resoluted *= 2
-                diff_process *= 2
+                #diff_process *= 2
                 if not args.use_pytorch_wavelet:
                     resoluted = iwt(
                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
-                    diff_process = iwt(
-                        diff_process[:, :3], diff_process[:, 3:6], diff_process[:, 6:9], diff_process[:, 9:12])
+                    # diff_process = iwt(
+                    #     diff_process[:, :3], diff_process[:, 3:6], diff_process[:, 6:9], diff_process[:, 9:12])
 
                 resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
-                diff_process = (torch.clamp(diff_process, -1, 1) + 1) / 2  # 0-1
+                #diff_process = (torch.clamp(diff_process, -1, 1) + 1) / 2  # 0-1
 
 
                 # saving HR images 
@@ -240,9 +240,9 @@ def sample_and_test(args):
                 #     torchvision.utils.save_image(x, os.path.join(
                 #         save_dir, '{}_{}_sr.png'.format(iteration, i)), normalize = True)
                 
-                # saving diff process
-                torchvision.utils.save_image(
-                    diff_process, os.path.join (save_dir,'sr_diff_proc_id{}.jpg'.format(iteration)), normalize=True)
+                ## saving diff process
+                # torchvision.utils.save_image(
+                #     diff_process, os.path.join (save_dir,'sr_diff_proc_id{}.jpg'.format(iteration)), normalize=True)
 
 
                 print("Results are saved at tot_sr_id{}.jpg".format(iteration))
