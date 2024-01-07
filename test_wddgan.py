@@ -220,25 +220,25 @@ def sample_and_test(args):
                 # saving HR images 
                 torchvision.utils.save_image(hr, os.path.join(
                     save_dir, 'tot_hr_id{}.png'.format(iteration)), normalize=True)
-                # for i, x in enumerate(hr): # save each image
-                #     torchvision.utils.save_image(x, os.path.join(
-                #         save_dir, '{}_{}_hr.png'.format(iteration, i)), normalize = True)
+                for i, x in enumerate(hr): # save each image
+                    torchvision.utils.save_image(x, os.path.join(
+                        save_dir, '{}_{}_hr.png'.format(iteration, i)), normalize = True)
 
                 
                 # saving LR test set images 
                 torchvision.utils.save_image(lr, os.path.join(
                     save_dir, 'tot_lr_id{}.png'.format(iteration)), normalize=True)
-                # for i, x in enumerate(lr): # save each image
-                #     torchvision.utils.save_image(x, os.path.join(
-                #         save_dir, '{}_{}_lr.png'.format(iteration, i)), normalize = True)
+                for i, x in enumerate(lr): # save each image
+                    torchvision.utils.save_image(x, os.path.join(
+                        save_dir, '{}_{}_lr.png'.format(iteration, i)), normalize = True)
 
                 
                 #saving sr images
                 torchvision.utils.save_image(
                     resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(iteration)), normalize=True)
-                # for i, x in enumerate(resoluted): # save each image
-                #     torchvision.utils.save_image(x, os.path.join(
-                #         save_dir, '{}_{}_sr.png'.format(iteration, i)), normalize = True)
+                for i, x in enumerate(resoluted): # save each image
+                    torchvision.utils.save_image(x, os.path.join(
+                        save_dir, '{}_{}_sr.png'.format(iteration, i)), normalize = True)
                 
                 ## saving diff process
                 # torchvision.utils.save_image(
@@ -246,7 +246,7 @@ def sample_and_test(args):
 
 
                 print("Results are saved at tot_sr_id{}.jpg".format(iteration))
-                if (iteration >= 10):
+                if (iteration >= 12):
                     exit(0)
 
 
