@@ -108,4 +108,4 @@ WaveDiff [implementation](https://github.com/VinAIResearch/WaveDiff) and [paper]
 
 SR3 [unofficial implementation](https://github.com/Janspiry/Image-Super-Resolution-via-Iterative-Refinement/tree/master) and [paper](https://arxiv.org/abs/2104.07636);
 
-Wavelet transformations [implementation](https://github.com/LiQiufu/WaveCNet).
+Wavelet transforms [implementation](https://github.com/LiQiufu/WaveCNet).
