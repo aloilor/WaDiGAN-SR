@@ -8,7 +8,9 @@
 
 This study introduces a wavelet-based conditional diffusion scheme to address speed limitations in Image Super-Resolution Diffusion Models. Utilizing discrete wavelet transform on both image and feature levels, it efficiently reduces training and inference times while maintaining high-fidelity output. The study focuses on Single-Image Super-Resolution, demonstrating effectiveness through experimental validation on CelebA-HQ. This approach offers a practical solution for real-time implementation, contributing to the development of efficient diffusion models in image super-resolution.
 
-![](./assets/backward_diff_proc.png)
+
+<img src="./assets/backward_diff_proc.png" width="300" alt="Alt Text">
+
 
 
 
