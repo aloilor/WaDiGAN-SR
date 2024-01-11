@@ -89,9 +89,11 @@ Comparisons between our model and SR3 (both trained on 25k iteration steps) are 
   </tr>
 </table>
 
+The checkpoint we used to compute these results is provided [here](https://drive.google.com/file/d/1wsshXObaHQhOKdJ8yk80hvZM-6s0zLHd/view?usp=sharing).
+
 Inference time is computed over 300 trials on a single NVIDIA Tesla T4 GPU for a batch size of 64.
 
-Downloaded pre-trained models should be put in `saved_info/wdd_gan/<DATASET>/<EXP>` directory where `<DATASET>` is defined in [How to run](#how-to-run) section and `<EXP>` corresponds to the folder name of pre-trained checkpoints.
+Downloaded pre-trained models should be put in `saved_info/srwavediff/<DATASET>/<EXP>` directory where `<DATASET>` is defined in [How to run](#how-to-run) section and `<EXP>` corresponds to the folder name of pre-trained checkpoints.
 
 ## Evaluation ##
 ### Inference ###
