@@ -520,7 +520,7 @@ if __name__ == '__main__':
     parser.add_argument("--current_resolution", type=int, default=256)
     parser.add_argument("--use_pytorch_wavelet", action="store_true")
     parser.add_argument("--rec_loss", action="store_true")
-    parser.add_argument("--net_type", default="normal")
+    parser.add_argument("--net_type", default="wavelet")
     parser.add_argument("--num_disc_layers", default=6, type=int)
     parser.add_argument("--no_use_fbn", action="store_true")
     parser.add_argument("--no_use_freq", action="store_true")
