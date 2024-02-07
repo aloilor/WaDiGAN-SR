@@ -651,9 +651,7 @@ class WaveletNCSNpp(NCSNpp):
         # print(x_cond.size())
         # x_cond = torch.flatten(x_cond, start_dim=1)
         # print(x_cond.size())
-        print(z.size())
-        zemb = self.z_transform(z)
-        print(zemb.size())
+        zemb = self.z_transform(x_cond)
         modules = self.all_modules
         m_idx = 0
 
