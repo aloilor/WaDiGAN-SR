@@ -607,7 +607,7 @@ class WaveletNCSNpp(NCSNpp):
         # Downsampling block
 
         channels = config.num_channels * self.patch_size**2
-        if progressive_input != 'none': #no
+        if progressive_input != 'none': #yes
             input_pyramid_ch = channels
 
         modules.append(conv3x3(channels, nf))
