@@ -201,6 +201,7 @@ def train(rank, gpu, args):
     else:
         global_step, epoch, init_epoch = 0, 0, 0
 
+
     print("Starting training loop. \n")
     for epoch in range(init_epoch, args.num_epoch + 1):
         train_sampler.set_epoch(epoch)
@@ -323,15 +324,16 @@ def train(rank, gpu, args):
             optimizerG.step()
 
             global_step += 1
-            if iteration % 100 == 0 and iteration != 0:
+
+            if global_step % 100 == 0 and global_step != 0:
                 if rank == 0:
                     
                     loss_file = open('{}/losses.txt'.format(exp_path), 'a') # saving losses in it 
                     loss_file.write('epoch {} iteration{}, G Loss: {}, D Loss: {}\n'.format(
-                        epoch, iteration, errG.item(), errD.item()))
+                        epoch, global_step, errG.item(), errD.item()))
                     loss_file.close()
                     print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(
-                        epoch, iteration, errG.item(), errD.item()))
+                        epoch, global_step, errG.item(), errD.item()))
                     # wandb.log({"gen_loss": errG.item(), "disc_loss": errD.item()})
 
 
