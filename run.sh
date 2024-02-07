@@ -22,7 +22,7 @@ if [[ $MODE == train ]]; then
 	echo "==> Training SRWaveDiff"
 
 	if [[ $DATASET == celebahq_16_128 ]]; then #same as celebahq_256 - might need to revisit later
-		python train_srwddgan.py --dataset celebahq_16_128 --image_size 128 --exp celebahq16_128_wolatent_batch64_timesteps2_atn16_wg12224_d6_recloss_150ep --num_channels 24 \
+		python train_srwddgan.py --dataset celebahq_16_128 --image_size 128 --exp celebahq16_128_wolatent_batch64_ts2_atn16_wg12224_d6_recloss_150ep --num_channels 24 \
 			--num_channels_dae 64 --ch_mult 1 2 2 2 4 --num_timesteps 2 \
 			--num_res_blocks 2 --batch_size 64 --num_epoch 150 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
 			--z_emb_dim 256 --lr_d 1e-4 --lr_g 2e-4 --lazy_reg 10 --save_content \
