@@ -219,7 +219,6 @@ def train(rank, gpu, args):
 
             hr_image = data_dict['HR'] # hr_img
             sr_image = data_dict['SR'] # sr_img - bicubic interpolated
-            sample_index = data_dict['Index']
 
             # sample from p(x_0)
             x0 = hr_image.to(device, non_blocking=True)
@@ -279,7 +278,7 @@ def train(rank, gpu, args):
 
             # train with fake
             latent_z = torch.randn(batch_size, nz, device=device)
-            x_0_predict = netG(x_tp1_sr.detach(), t, latent_z)
+            x_0_predict = netG(x_tp1_sr.detach(), t, latent_z, sr_data)
 
 
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t) # x(t-1) fake 
@@ -310,7 +309,8 @@ def train(rank, gpu, args):
             x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
             latent_z = torch.randn(batch_size, nz, device=device)
-            x_0_predict = netG(x_tp1_sr.detach(), t, latent_z)
+            print(latent_z.size())
+            x_0_predict = netG(x_tp1_sr.detach(), t, latent_z, sr_data)
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
 
             output = netD(x_pos_sample, t, x_tp1.detach()).view(-1)

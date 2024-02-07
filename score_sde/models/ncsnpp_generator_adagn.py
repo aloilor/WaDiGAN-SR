@@ -469,6 +469,8 @@ class WaveletNCSNpp(NCSNpp):
         self.not_use_tanh = config.not_use_tanh
         self.act = act = nn.SiLU()
         self.z_emb_dim = z_emb_dim = config.z_emb_dim
+        self.cond_dim = cond_dim = int(config.num_channels/2)
+        self.cond_emb_dim = cond_emb_dim = config.z_emb_dim
 
         self.patch_size = config.patch_size
         assert config.image_size % self.patch_size == 0
@@ -526,11 +528,8 @@ class WaveletNCSNpp(NCSNpp):
         AttnBlock = functools.partial(layerspp.AttnBlockpp,
                                       init_scale=init_scale,
                                       skip_rescale=skip_rescale)
-
         Upsample = functools.partial(layerspp.Upsample,
                                      with_conv=resamp_with_conv, fir=fir, fir_kernel=fir_kernel)
-
-
         Downsample = functools.partial(layerspp.Downsample,
                                        with_conv=resamp_with_conv, fir=fir, fir_kernel=fir_kernel)
 
@@ -545,7 +544,7 @@ class WaveletNCSNpp(NCSNpp):
                                                 init_scale=init_scale,
                                                 skip_rescale=skip_rescale,
                                                 temb_dim=nf * 4,
-                                                zemb_dim=z_emb_dim)
+                                                cond_emb_dim=cond_emb_dim)
         else:
             raise ValueError(f'resblock type {resblock_type} unrecognized.')
 
@@ -635,12 +634,12 @@ class WaveletNCSNpp(NCSNpp):
         self.all_modules = nn.ModuleList(modules)
 
         mapping_layers = [PixelNorm(),
-                          dense(config.nz, z_emb_dim),
+                          dense(cond_dim, cond_emb_dim),
                           self.act, ]
 
-        # transforming the input noise (config.nz) into an embedding (z_emb_dim)
+        # transforming the low-res conditioning input (config.nz) into an embedding (cond_emb_dim)
         for _ in range(config.n_mlp):
-            mapping_layers.append(dense(z_emb_dim, z_emb_dim))
+            mapping_layers.append(dense(cond_emb_dim, cond_emb_dim))
             mapping_layers.append(self.act)
         self.z_transform = nn.Sequential(*mapping_layers)
 
@@ -648,12 +647,15 @@ class WaveletNCSNpp(NCSNpp):
         self.dwt = DWT_2D("haar")
         self.iwt = IDWT_2D("haar")
 
-    def forward(self, x, time_cond, z):
+
+
+
+    def forward(self, x, time_cond, z, x_cond):
         # patchify
         x = rearrange(x, "n c (h p1) (w p2) -> n (p1 p2 c) h w",
                       p1=self.patch_size, p2=self.patch_size)
         # timestep/noise_level embedding; only for continuous training
-        zemb = self.z_transform(z)
+        condemb = self.z_transform(x_cond)
         modules = self.all_modules
         m_idx = 0
 
@@ -688,7 +690,7 @@ class WaveletNCSNpp(NCSNpp):
         for i_level in range(self.num_resolutions):
             # Residual blocks for this resolution
             for i_block in range(self.num_res_blocks):
-                h = modules[m_idx](hs[-1], temb, zemb)
+                h = modules[m_idx](hs[-1], temb, condemb)
                 m_idx += 1
                 if h.shape[-1] in self.attn_resolutions:
                     h = modules[m_idx](h)
@@ -697,23 +699,12 @@ class WaveletNCSNpp(NCSNpp):
                 hs.append(h)
 
             if i_level != self.num_resolutions - 1:
-                if self.resblock_type == 'ddpm': # no
-                    h = modules[m_idx](h)
-                    m_idx += 1
-                else:
-                    if self.no_use_freq: # no
-                        h = modules[m_idx](h, temb, zemb)
-                    else:
-                        h, skipH = modules[m_idx](h, temb, zemb)
-                        skipHs.append(skipH)
-                    m_idx += 1
 
-                if self.progressive_input == 'input_skip': # no
-                    input_pyramid = self.pyramid_downsample(input_pyramid)
-                    h = modules[m_idx](input_pyramid, h)
-                    m_idx += 1
+                h, skipH = modules[m_idx](h, temb, condemb)
+                skipHs.append(skipH)
+                m_idx += 1
 
-                elif self.progressive_input == 'residual': # yes
+                if self.progressive_input == 'residual': # yes
                     input_pyramid = modules[m_idx](input_pyramid)
                     m_idx += 1
                     if self.skip_rescale: #yes
@@ -726,26 +717,21 @@ class WaveletNCSNpp(NCSNpp):
 
         h = hs[-1]
 
-        if self.no_use_fbn: # no
-            h = modules[m_idx](h, temb, zemb)
-        else: # yes
-            h, hlh, hhl, hhh = self.dwt(h)
-            h = modules[m_idx](h / 2., temb, zemb) #resblock
-            h = self.iwt(h * 2., hlh, hhl, hhh)
+
+        h, hlh, hhl, hhh = self.dwt(h)
+        h = modules[m_idx](h / 2., temb, condemb) #resblock
+        h = self.iwt(h * 2., hlh, hhl, hhh)
         m_idx += 1
 
         # attn block
         h = modules[m_idx](h)
         m_idx += 1
 
-        if self.no_use_fbn: # no
-            h = modules[m_idx](h, temb, zemb)
-        else:
-            # forward on original feature space
-            h = modules[m_idx](h, temb, zemb)
-            h, hlh, hhl, hhh = self.dwt(h)
-            h = modules[m_idx](h / 2., temb, zemb)  # forward on wavelet space - resblock
-            h = self.iwt(h * 2., hlh, hhl, hhh)
+        # forward on original feature space
+        h = modules[m_idx](h, temb, condemb)
+        h, hlh, hhl, hhh = self.dwt(h)
+        h = modules[m_idx](h / 2., temb, condemb)  # forward on wavelet space - resblock
+        h = self.iwt(h * 2., hlh, hhl, hhh)
         m_idx += 1
 
         pyramid = None
@@ -753,7 +739,7 @@ class WaveletNCSNpp(NCSNpp):
         # Upsampling block
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks + 1):
-                h = modules[m_idx](torch.cat([h, hs.pop()], dim=1), temb, zemb)
+                h = modules[m_idx](torch.cat([h, hs.pop()], dim=1), temb, condemb)
 
                 m_idx += 1
 
@@ -761,63 +747,17 @@ class WaveletNCSNpp(NCSNpp):
                 h = modules[m_idx](h)
                 m_idx += 1
 
-            if self.progressive != 'none': # no
-                if i_level == self.num_resolutions - 1:
-                    if self.progressive == 'output_skip':
-                        pyramid = self.act(modules[m_idx](h))
-                        m_idx += 1
-                        pyramid = modules[m_idx](pyramid)
-                        m_idx += 1
-                    elif self.progressive == 'residual':
-                        pyramid = self.act(modules[m_idx](h))
-                        m_idx += 1
-                        pyramid = modules[m_idx](pyramid)
-                        m_idx += 1
-                    else:
-                        raise ValueError(
-                            f'{self.progressive} is not a valid name.')
-                else:
-                    if self.progressive == 'output_skip':
-                        pyramid = self.pyramid_upsample(pyramid)
-                        pyramid_h = self.act(modules[m_idx](h))
-                        m_idx += 1
-                        pyramid_h = modules[m_idx](pyramid_h)
-                        m_idx += 1
-                        pyramid = pyramid + pyramid_h
-                    elif self.progressive == 'residual':
-                        pyramid = modules[m_idx](pyramid)
-                        m_idx += 1
-                        if self.skip_rescale:
-                            pyramid = (pyramid + h) / np.sqrt(2.)
-                        else:
-                            pyramid = pyramid + h
-                        h = pyramid
-                    else:
-                        raise ValueError(
-                            f'{self.progressive} is not a valid name')
-
             if i_level != 0:
-                if self.resblock_type == 'ddpm': # no
-                    h = modules[m_idx](h)
-                    m_idx += 1
-                else: # yes
-                    if self.no_use_freq: # no
-                        h = modules[m_idx](h, temb, zemb)
-                    else:
-                        h = modules[m_idx](h, temb, zemb, skipH=skipHs.pop())
-
-                    m_idx += 1
+                h = modules[m_idx](h, temb, condemb, skipH=skipHs.pop())
+                m_idx += 1
 
         assert not hs
 
-        if self.progressive == 'output_skip': # no
-            h = pyramid
-        else: # yes
-            h = self.act(modules[m_idx](h))
-            m_idx += 1
-            h = modules[m_idx](h)
 
-            m_idx += 1
+        h = self.act(modules[m_idx](h))
+        m_idx += 1
+        h = modules[m_idx](h)
+        m_idx += 1
 
         assert m_idx == len(modules)
         # unpatchify
