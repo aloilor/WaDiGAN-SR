@@ -627,7 +627,7 @@ class WaveletNCSNpp(NCSNpp):
         self.all_modules = nn.ModuleList(modules)
 
         mapping_layers = [PixelNorm(),
-                          dense(config.nz, z_emb_dim),
+                          dense(cond_dim, z_emb_dim),
                           self.act, ]
 
         # transforming the low-res conditioning input (config.nz) into an embedding (cond_emb_dim)
@@ -648,7 +648,7 @@ class WaveletNCSNpp(NCSNpp):
         x = rearrange(x, "n c (h p1) (w p2) -> n (p1 p2 c) h w",
                       p1=self.patch_size, p2=self.patch_size)
         # timestep/noise_level embedding; only for continuous training
-        zemb = self.z_transform(z)
+        zemb = self.z_transform(x_cond)
         modules = self.all_modules
         m_idx = 0
 

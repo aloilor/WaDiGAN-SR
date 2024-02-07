@@ -250,7 +250,6 @@ def train(rank, gpu, args):
             sr_data = sr_data / 2.0  # [-1, 1]
             assert -1 <= sr_data.min() < 0
             assert 0 < sr_data.max() <= 1
-            print(sr_data.size())
 
 
 
@@ -309,7 +308,6 @@ def train(rank, gpu, args):
             x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
             latent_z = torch.randn(batch_size, nz, device=device)
-            print(latent_z.size())
             x_0_predict = netG(x_tp1_sr.detach(), t, latent_z, sr_data)
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
 
