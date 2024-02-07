@@ -160,7 +160,6 @@ def sample_posterior(coefficients, x_0, x_t, t):
 
 def sample_from_model(coefficients, generator, n_time, x_init, x_cond, T, opt,):
     x = x_init
-    diff = x
     with torch.no_grad():
         for i in reversed(range(n_time)):
             t = torch.full((x.size(0),), i, dtype=torch.int64).to(x.device)
@@ -178,4 +177,4 @@ def sample_from_model(coefficients, generator, n_time, x_init, x_cond, T, opt,):
             x = x_new.detach()
             diff = torch.cat([diff, x], dim = 0)
 
-    return x, diff
+    return x
