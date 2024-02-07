@@ -649,6 +649,7 @@ class WaveletNCSNpp(NCSNpp):
                       p1=self.patch_size, p2=self.patch_size)
         # timestep/noise_level embedding; only for continuous training
         print(x_cond.size())
+        x_cond = torch.flatten(x_cond, start_dim=1)
         zemb = self.z_transform(x_cond)
         print(zemb.size())
         modules = self.all_modules
