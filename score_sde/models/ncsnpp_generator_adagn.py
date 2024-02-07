@@ -648,7 +648,7 @@ class WaveletNCSNpp(NCSNpp):
         self.dwt = DWT_2D("haar")
         self.iwt = IDWT_2D("haar")
 
-    def forward(self, x, time_cond, z, x_cond):
+    def forward(self, x, time_cond, z):
         # patchify
         x = rearrange(x, "n c (h p1) (w p2) -> n (p1 p2 c) h w",
                       p1=self.patch_size, p2=self.patch_size)
