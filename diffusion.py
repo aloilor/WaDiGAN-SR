@@ -175,6 +175,5 @@ def sample_from_model(coefficients, generator, n_time, x_init, x_cond, T, opt,):
             x_0 = generator(x_t_1, t_time, latent_z)
             x_new = sample_posterior(coefficients, x_0, x, t) # x(t-1) fake
             x = x_new.detach()
-            diff = torch.cat([diff, x], dim = 0)
-
+            
     return x
