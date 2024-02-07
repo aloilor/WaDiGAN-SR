@@ -247,12 +247,13 @@ def train(rank, gpu, args):
                     srll, srlh, srhl, srhh = dwt(sr)
             
             sr_data = torch.cat([srll, srlh, srhl, srhh], dim=1) # [b, 12, h/2, w/2]
-
             # normalize sr_data
             sr_data = sr_data / 2.0  # [-1, 1]
-
             assert -1 <= sr_data.min() < 0
             assert 0 < sr_data.max() <= 1
+            print(sr_data.size())
+
+
 
             # sample t
             t = torch.randint(0, args.num_timesteps,

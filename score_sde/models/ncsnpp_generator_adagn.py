@@ -508,18 +508,8 @@ class WaveletNCSNpp(NCSNpp):
 
         modules = []
         # timestep/noise_level embedding; only for continuous training
-        if embedding_type == 'fourier': #no
-            # Gaussian Fourier features embeddings.
-            # assert config.training.continuous, "Fourier features are only used for continuous training."
-
-            modules.append(layerspp.GaussianFourierProjection(
-                embedding_size=nf, scale=config.fourier_scale
-            ))
-            embed_dim = 2 * nf
-
-        elif embedding_type == 'positional': #yes
+        if embedding_type == 'positional': #yes
             embed_dim = nf
-
         else:
             raise ValueError(f'embedding type {embedding_type} unknown.')
 
@@ -540,67 +530,22 @@ class WaveletNCSNpp(NCSNpp):
         Upsample = functools.partial(layerspp.Upsample,
                                      with_conv=resamp_with_conv, fir=fir, fir_kernel=fir_kernel)
 
-        if progressive == 'output_skip': #no
-            self.pyramid_upsample = layerspp.Upsample(
-                fir=fir, fir_kernel=fir_kernel, with_conv=False)
-        elif progressive == 'residual': #no
-            pyramid_upsample = functools.partial(layerspp.Upsample,
-                                                 fir=fir, fir_kernel=fir_kernel, with_conv=True)
 
         Downsample = functools.partial(layerspp.Downsample,
                                        with_conv=resamp_with_conv, fir=fir, fir_kernel=fir_kernel)
 
-        if progressive_input == 'input_skip': #no 
-            self.pyramid_downsample = layerspp.Downsample(
-                fir=fir, fir_kernel=fir_kernel, with_conv=False)
-        elif progressive_input == 'residual': #yes
-            if self.no_use_residual: #no
-                pyramid_downsample = functools.partial(layerspp.Downsample,
-                                                       fir=fir, fir_kernel=fir_kernel, with_conv=True)
-            else: #yes
-                pyramid_downsample = functools.partial(
-                    layerspp.WaveletDownsample)
 
-        if resblock_type == 'ddpm': #no 
-            ResnetBlock = functools.partial(ResnetBlockDDPM,
-                                            act=act,
-                                            dropout=dropout,
-                                            init_scale=init_scale,
-                                            skip_rescale=skip_rescale,
-                                            temb_dim=nf * 4,
-                                            zemb_dim=z_emb_dim)
+        if progressive_input == 'residual': #yes
+            pyramid_downsample = functools.partial(layerspp.WaveletDownsample)
 
-        elif resblock_type == 'biggan': #yes
-            if self.no_use_freq: #no
-                ResnetBlock = functools.partial(ResnetBlockBigGAN,
-                                                act=act,
-                                                dropout=dropout,
-                                                fir=fir,
-                                                fir_kernel=fir_kernel,
-                                                init_scale=init_scale,
-                                                skip_rescale=skip_rescale,
-                                                temb_dim=nf * 4,
-                                                zemb_dim=z_emb_dim)
-            else: #yes
-                ResnetBlock = functools.partial(WaveletResnetBlockBigGAN,
+        if resblock_type == 'biggan': #yes  
+            ResnetBlock = functools.partial(WaveletResnetBlockBigGAN,
                                                 act=act,
                                                 dropout=dropout,
                                                 init_scale=init_scale,
                                                 skip_rescale=skip_rescale,
                                                 temb_dim=nf * 4,
                                                 zemb_dim=z_emb_dim)
-
-        elif resblock_type == 'biggan_oneadagn': #no
-            ResnetBlock = functools.partial(ResnetBlockBigGAN_one,
-                                            act=act,
-                                            dropout=dropout,
-                                            fir=fir,
-                                            fir_kernel=fir_kernel,
-                                            init_scale=init_scale,
-                                            skip_rescale=skip_rescale,
-                                            temb_dim=nf * 4,
-                                            zemb_dim=z_emb_dim)
-
         else:
             raise ValueError(f'resblock type {resblock_type} unrecognized.')
 
@@ -668,35 +613,7 @@ class WaveletNCSNpp(NCSNpp):
             if all_resolutions[i_level] in attn_resolutions:
                 modules.append(AttnBlock(channels=in_ch))
 
-            if progressive != 'none': # no
-                if i_level == num_resolutions - 1:
-                    if progressive == 'output_skip':
-                        modules.append(nn.GroupNorm(num_groups=min(in_ch // 4, 32),
-                                                    num_channels=in_ch, eps=1e-6))
-                        modules.append(
-                            conv3x3(in_ch, channels, init_scale=init_scale))
-                        pyramid_ch = channels
-                    elif progressive == 'residual':
-                        modules.append(nn.GroupNorm(num_groups=min(in_ch // 4, 32),
-                                                    num_channels=in_ch, eps=1e-6))
-                        modules.append(conv3x3(in_ch, in_ch, bias=True))
-                        pyramid_ch = in_ch
-                    else:
-                        raise ValueError(f'{progressive} is not a valid name.')
-                else:
-                    if progressive == 'output_skip':
-                        modules.append(nn.GroupNorm(num_groups=min(in_ch // 4, 32),
-                                                    num_channels=in_ch, eps=1e-6))
-                        modules.append(
-                            conv3x3(in_ch, channels, bias=True, init_scale=init_scale))
-                        pyramid_ch = channels
-                    elif progressive == 'residual':
-                        modules.append(pyramid_upsample(
-                            in_ch=pyramid_ch, out_ch=in_ch))
-                        pyramid_ch = in_ch
-                    else:
-                        raise ValueError(f'{progressive} is not a valid name')
-
+            
             if i_level != 0:
                 if resblock_type == 'ddpm': # no
                     modules.append(Upsample(in_ch=in_ch))
@@ -731,7 +648,7 @@ class WaveletNCSNpp(NCSNpp):
         self.dwt = DWT_2D("haar")
         self.iwt = IDWT_2D("haar")
 
-    def forward(self, x, time_cond, z):
+    def forward(self, x, time_cond, z, x_cond):
         # patchify
         x = rearrange(x, "n c (h p1) (w p2) -> n (p1 p2 c) h w",
                       p1=self.patch_size, p2=self.patch_size)
@@ -739,18 +656,11 @@ class WaveletNCSNpp(NCSNpp):
         zemb = self.z_transform(z)
         modules = self.all_modules
         m_idx = 0
-        if self.embedding_type == 'fourier': #no
-            # Gaussian Fourier features embeddings.
-            used_sigmas = time_cond
-            temb = modules[m_idx](torch.log(used_sigmas))
-            m_idx += 1
 
-        elif self.embedding_type == 'positional': #yes
+        if self.embedding_type == 'positional': #yes
             # Sinusoidal positional embeddings.
             timesteps = time_cond
-
             temb = layers.get_timestep_embedding(timesteps, self.nf)
-
         else:
             raise ValueError(f'embedding type {self.embedding_type} unknown.')
 
