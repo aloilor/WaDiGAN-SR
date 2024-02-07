@@ -648,10 +648,12 @@ class WaveletNCSNpp(NCSNpp):
         x = rearrange(x, "n c (h p1) (w p2) -> n (p1 p2 c) h w",
                       p1=self.patch_size, p2=self.patch_size)
         # timestep/noise_level embedding; only for continuous training
-        print(x_cond.size())
-        x_cond = torch.flatten(x_cond, start_dim=1)
-        print(x_cond.size())
-        zemb = self.z_transform(x_cond)
+        # print(x_cond.size())
+        # x_cond = torch.flatten(x_cond, start_dim=1)
+        # print(x_cond.size())
+        print(z.size())
+        zemb = self.z_transform(z)
+        print(zemb.size())
         modules = self.all_modules
         m_idx = 0
 
