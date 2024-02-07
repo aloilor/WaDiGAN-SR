@@ -544,7 +544,7 @@ class WaveletNCSNpp(NCSNpp):
                                                 init_scale=init_scale,
                                                 skip_rescale=skip_rescale,
                                                 temb_dim=nf * 4,
-                                                cond_emb_dim=cond_emb_dim)
+                                                z_emb_dim=z_emb_dim)
         else:
             raise ValueError(f'resblock type {resblock_type} unrecognized.')
 
@@ -614,14 +614,7 @@ class WaveletNCSNpp(NCSNpp):
 
             
             if i_level != 0:
-                if resblock_type == 'ddpm': # no
-                    modules.append(Upsample(in_ch=in_ch))
-                else:
-                    if self.no_use_freq: #no
-                        modules.append(ResnetBlock(in_ch=in_ch, up=True))
-                    else: #yes
-                        modules.append(ResnetBlock(
-                            in_ch=in_ch, up=True, hi_in_ch=hs_c2.pop()))
+                modules.append(ResnetBlock(in_ch=in_ch, up=True, hi_in_ch=hs_c2.pop()))
 
         assert not hs_c
 
@@ -639,7 +632,7 @@ class WaveletNCSNpp(NCSNpp):
 
         # transforming the low-res conditioning input (config.nz) into an embedding (cond_emb_dim)
         for _ in range(config.n_mlp):
-            mapping_layers.append(dense(cond_emb_dim, cond_emb_dim))
+            mapping_layers.append(dense(config.nz, z_emb_dim))
             mapping_layers.append(self.act)
         self.z_transform = nn.Sequential(*mapping_layers)
 
@@ -655,7 +648,7 @@ class WaveletNCSNpp(NCSNpp):
         x = rearrange(x, "n c (h p1) (w p2) -> n (p1 p2 c) h w",
                       p1=self.patch_size, p2=self.patch_size)
         # timestep/noise_level embedding; only for continuous training
-        condemb = self.z_transform(x_cond)
+        zemb = self.z_transform(z)
         modules = self.all_modules
         m_idx = 0
 
@@ -690,7 +683,7 @@ class WaveletNCSNpp(NCSNpp):
         for i_level in range(self.num_resolutions):
             # Residual blocks for this resolution
             for i_block in range(self.num_res_blocks):
-                h = modules[m_idx](hs[-1], temb, condemb)
+                h = modules[m_idx](hs[-1], temb, zemb)
                 m_idx += 1
                 if h.shape[-1] in self.attn_resolutions:
                     h = modules[m_idx](h)
@@ -700,7 +693,7 @@ class WaveletNCSNpp(NCSNpp):
 
             if i_level != self.num_resolutions - 1:
 
-                h, skipH = modules[m_idx](h, temb, condemb)
+                h, skipH = modules[m_idx](h, temb, zemb)
                 skipHs.append(skipH)
                 m_idx += 1
 
@@ -719,7 +712,7 @@ class WaveletNCSNpp(NCSNpp):
 
 
         h, hlh, hhl, hhh = self.dwt(h)
-        h = modules[m_idx](h / 2., temb, condemb) #resblock
+        h = modules[m_idx](h / 2., temb, zemb) #resblock
         h = self.iwt(h * 2., hlh, hhl, hhh)
         m_idx += 1
 
@@ -728,9 +721,9 @@ class WaveletNCSNpp(NCSNpp):
         m_idx += 1
 
         # forward on original feature space
-        h = modules[m_idx](h, temb, condemb)
+        h = modules[m_idx](h, temb, zemb)
         h, hlh, hhl, hhh = self.dwt(h)
-        h = modules[m_idx](h / 2., temb, condemb)  # forward on wavelet space - resblock
+        h = modules[m_idx](h / 2., temb, zemb)  # forward on wavelet space - resblock
         h = self.iwt(h * 2., hlh, hhl, hhh)
         m_idx += 1
 
@@ -739,7 +732,7 @@ class WaveletNCSNpp(NCSNpp):
         # Upsampling block
         for i_level in reversed(range(self.num_resolutions)):
             for i_block in range(self.num_res_blocks + 1):
-                h = modules[m_idx](torch.cat([h, hs.pop()], dim=1), temb, condemb)
+                h = modules[m_idx](torch.cat([h, hs.pop()], dim=1), temb, zemb)
 
                 m_idx += 1
 
@@ -748,7 +741,7 @@ class WaveletNCSNpp(NCSNpp):
                 m_idx += 1
 
             if i_level != 0:
-                h = modules[m_idx](h, temb, condemb, skipH=skipHs.pop())
+                h = modules[m_idx](h, temb, zemb, skipH=skipHs.pop())
                 m_idx += 1
 
         assert not hs

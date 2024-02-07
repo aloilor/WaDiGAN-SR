@@ -347,12 +347,12 @@ class ResnetBlockBigGANpp_Adagn(nn.Module):
 
 class WaveletResnetBlockBigGANpp_Adagn(nn.Module):
     def __init__(self, act, in_ch, out_ch=None, temb_dim=None, zemb_dim=None, up=False, down=False,
-                 dropout=0.1, skip_rescale=True, init_scale=0., hi_in_ch=None, cond_emb_dim=None):
+                 dropout=0.1, skip_rescale=True, init_scale=0., hi_in_ch=None, condemb_dim=None):
         super().__init__()
 
         out_ch = out_ch if out_ch else in_ch
         self.GroupNorm_0 = AdaptiveGroupNorm(
-            min(in_ch // 4, 32), in_ch, cond_emb_dim)
+            min(in_ch // 4, 32), in_ch, zemb_dim)
 
         self.up = up
         self.down = down
@@ -364,7 +364,7 @@ class WaveletResnetBlockBigGANpp_Adagn(nn.Module):
             nn.init.zeros_(self.Dense_0.bias)
 
         self.GroupNorm_1 = AdaptiveGroupNorm(
-            min(out_ch // 4, 32), out_ch, cond_emb_dim)
+            min(out_ch // 4, 32), out_ch, zemb_dim)
         self.Dropout_0 = nn.Dropout(dropout)
         self.Conv_1 = conv3x3(out_ch, out_ch, init_scale=init_scale)
         if in_ch != out_ch or up or down:
