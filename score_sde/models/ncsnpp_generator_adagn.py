@@ -627,12 +627,12 @@ class WaveletNCSNpp(NCSNpp):
         self.all_modules = nn.ModuleList(modules)
 
         mapping_layers = [PixelNorm(),
-                          dense(cond_dim, cond_emb_dim),
+                          dense(config.nz, z_emb_dim),
                           self.act, ]
 
         # transforming the low-res conditioning input (config.nz) into an embedding (cond_emb_dim)
         for _ in range(config.n_mlp):
-            mapping_layers.append(dense(config.nz, z_emb_dim))
+            mapping_layers.append(dense(z_emb_dim, z_emb_dim))
             mapping_layers.append(self.act)
         self.z_transform = nn.Sequential(*mapping_layers)
 
