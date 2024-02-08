@@ -112,7 +112,7 @@ def train(rank, gpu, args):
 
     args.ori_image_size = args.image_size
     args.image_size = args.current_resolution
-    G_NET_ZOO = {"normal": NCSNpp, "wavelet": WaveletNCSNpp}
+    G_NET_ZOO = {"wavelet": WaveletNCSNpp}
     gen_net = G_NET_ZOO[args.net_type]
     disc_net = [Discriminator_small, Discriminator_large]
     netG = gen_net(args).to(device)
