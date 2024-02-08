@@ -163,17 +163,11 @@ def sample_from_model(coefficients, generator, n_time, x_init, x_cond, T, opt,):
     with torch.no_grad():
         for i in reversed(range(n_time)):
             t = torch.full((x.size(0),), i, dtype=torch.int64).to(x.device)
-
             t_time = t
-            latent_z = torch.randn(x.size(0), opt.nz, device=x.device)
-            
             # x conditioned on LR 
-            x_t_1 = torch.cat([x, x_cond], dim=1)
-
+            # x_t_1 = torch.cat([x, x_cond], dim=1)
             #print(summary(generator, input_data=(x_t_1, t_time, latent_z)))
-
-            x_0 = generator(x_t_1, t_time, latent_z, x_cond)
+            x_0 = generator(x, t_time, x_cond)
             x_new = sample_posterior(coefficients, x_0, x, t) # x(t-1) fake
             x = x_new.detach()
-
     return x

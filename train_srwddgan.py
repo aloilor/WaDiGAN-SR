@@ -43,7 +43,6 @@ def train(rank, gpu, args):
 
     batch_size = args.batch_size
 
-    nz = args.nz  # latent dimension
 
     # experiment path creation
     exp = args.exp
@@ -276,8 +275,7 @@ def train(rank, gpu, args):
             x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
             # train with fake
-            latent_z = torch.randn(batch_size, nz, device=device)
-            x_0_predict = netG(x_tp1_sr.detach(), t, latent_z, sr_data)
+            x_0_predict = netG(x_tp1_sr.detach(), t, sr_data)
 
 
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t) # x(t-1) fake 
@@ -307,8 +305,7 @@ def train(rank, gpu, args):
             # sr and x(t+1) concat:
             x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
-            latent_z = torch.randn(batch_size, nz, device=device)
-            x_0_predict = netG(x_tp1_sr.detach(), t, latent_z, sr_data)
+            x_0_predict = netG(x_tp1_sr.detach(), t, sr_data)
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
 
             output = netD(x_pos_sample, t, x_tp1.detach()).view(-1)
@@ -487,10 +484,9 @@ if __name__ == '__main__':
         '--exp', default='experiment_cifar_default', help='name of experiment')
     parser.add_argument('--dataset', default='cifar10', help='name of dataset')
     parser.add_argument('--datadir', default='./data')
-    parser.add_argument('--nz', type=int, default=100)
     parser.add_argument('--num_timesteps', type=int, default=4)
 
-    parser.add_argument('--z_emb_dim', type=int, default=256)
+    parser.add_argument('--cond_emb_dim', type=int, default=256)
     parser.add_argument('--t_emb_dim', type=int, default=256)
     parser.add_argument('--batch_size', type=int,
                         default=128, help='input batch size')
