@@ -460,11 +460,11 @@ class NCSNpp(nn.Module):
 
 
 @utils.register_model(name='wavelet_ncsnpp')
-class WaveletNCSNpp(NCSNpp):
+class WaveletNCSNpp(nn.Module):
     """NCSN++ wavelet model"""
 
     def __init__(self, config):
-        super().__init__(config)
+        super().__init__()
         self.config = config
         self.not_use_tanh = config.not_use_tanh
         self.act = act = nn.SiLU()
