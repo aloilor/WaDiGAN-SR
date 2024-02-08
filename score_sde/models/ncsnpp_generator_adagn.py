@@ -460,7 +460,7 @@ class NCSNpp(nn.Module):
 
 
 @utils.register_model(name='wavelet_ncsnpp')
-class WaveletNCSNpp(nn.Module):
+class WaveletNCSNpp(NCSNpp):
     """NCSN++ wavelet model"""
 
     def __init__(self, config):
