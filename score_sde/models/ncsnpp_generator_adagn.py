@@ -291,7 +291,7 @@ class NCSNpp(nn.Module):
         self.all_modules = nn.ModuleList(modules)
 
         mapping_layers = [PixelNorm(),
-                          dense(config.nz, z_emb_dim),
+                          dense(config.cond_dim*config.image_size*config.image_size, z_emb_dim),
                           self.act, ]
         for _ in range(config.n_mlp):
             mapping_layers.append(dense(z_emb_dim, z_emb_dim))
