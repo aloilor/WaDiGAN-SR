@@ -73,7 +73,7 @@ class NCSNpp(nn.Module):
         self.config = config
         self.not_use_tanh = config.not_use_tanh
         self.act = act = nn.SiLU()
-        self.z_emb_dim = z_emb_dim = config.z_emb_dim
+        self.z_emb_dim = z_emb_dim = config.cond_emb_dim
 
         self.patch_size = config.patch_size # size of local regions or patches within an image
         assert config.image_size % self.patch_size == 0
