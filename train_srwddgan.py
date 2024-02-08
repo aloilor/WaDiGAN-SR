@@ -34,7 +34,7 @@ def grad_penalty_call(args, D_real, x_t):
 def train(rank, gpu, args):
     from EMA import EMA
     from score_sde.models.discriminator import Discriminator_large, Discriminator_small
-    from score_sde.models.ncsnpp_generator_adagn import NCSNpp, WaveletNCSNpp
+    from score_sde.models.ncsnpp_generator_adagn import WaveletNCSNpp
 
     torch.manual_seed(args.seed + rank)
     torch.cuda.manual_seed(args.seed + rank)
