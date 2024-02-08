@@ -271,10 +271,10 @@ def train(rank, gpu, args):
                     grad_penalty_call(args, D_real, x_t)
 
             # sr and x(t+1) channel wise concat :
-            x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
+            # x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
             # train with fake
-            x_0_predict = netG(x_tp1_sr.detach(), t, sr_data)
+            x_0_predict = netG(x_tp1.detach(), t, sr_data)
 
 
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t) # x(t-1) fake 
@@ -302,9 +302,9 @@ def train(rank, gpu, args):
             x_t, x_tp1 = q_sample_pairs(coeff, real_data, t)
 
             # sr and x(t+1) concat:
-            x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
+            # x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
-            x_0_predict = netG(x_tp1_sr.detach(), t, sr_data)
+            x_0_predict = netG(x_tp1.detach(), t, sr_data)
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
 
             output = netD(x_pos_sample, t, x_tp1.detach()).view(-1)
