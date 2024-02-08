@@ -543,7 +543,7 @@ class WaveletNCSNpp(nn.Module):
                                                 init_scale=init_scale,
                                                 skip_rescale=skip_rescale,
                                                 temb_dim=nf * 4,
-                                                zemb_dim=cond_emb_dim)
+                                                condemb_dim=cond_emb_dim)
         else:
             raise ValueError(f'resblock type {resblock_type} unrecognized.')
 

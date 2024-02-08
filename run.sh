@@ -29,7 +29,6 @@ if [[ $MODE == train ]]; then
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_128/ \
 			--master_port $MASTER_PORT \
 			--current_resolution 64 --attn_resolution 16 --num_disc_layers 6 --rec_loss \
-			--net_type wavelet \
 			--l_resolution 16 --h_resolution 128 \
 
 	elif [[ $DATASET == celebahq_16_64 ]]; then #same as celebahq_256 - might need to revisit later
