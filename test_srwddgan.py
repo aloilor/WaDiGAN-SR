@@ -316,7 +316,7 @@ if __name__ == '__main__':
     parser.add_argument('--nz', type=int, default=100)
     parser.add_argument('--num_timesteps', type=int, default=4)
 
-    parser.add_argument('--z_emb_dim', type=int, default=256)
+    parser.add_argument('--cond_emb_dim', type=int, default=256)
     parser.add_argument('--t_emb_dim', type=int, default=256)
     parser.add_argument('--batch_size', type=int, default=200,
                         help='sample generating batch size')
