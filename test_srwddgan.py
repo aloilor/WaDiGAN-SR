@@ -11,7 +11,7 @@ from diffusion import get_time_schedule, Posterior_Coefficients, \
 
 from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
 from pytorch_fid.fid_score import calculate_fid_given_paths
-from score_sde.models.ncsnpp_generator_adagn import NCSNpp, WaveletNCSNpp
+from score_sde.models.ncsnpp_generator_adagn import  WaveletNCSNpp
 from datasets_prep.dataset import create_dataset
 
 
@@ -36,7 +36,7 @@ def sample_and_test(args):
     args.image_size = args.current_resolution
     print(args.image_size, args.ch_mult, args.attn_resolutions)
 
-    G_NET_ZOO = {"normal": NCSNpp, "wavelet": WaveletNCSNpp}
+    G_NET_ZOO = { "wavelet": WaveletNCSNpp}
     gen_net = G_NET_ZOO[args.net_type]
     print("GEN: {}".format(gen_net))
 
