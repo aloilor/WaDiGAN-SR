@@ -237,7 +237,7 @@ def sample_and_test(args):
                 
 
                 print("Results are saved at tot_sr_id{}.jpg".format(iteration))
-                if (iteration >= 10):
+                if (iteration >= 95):
                     exit(0)
 
 
