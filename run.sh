@@ -35,7 +35,7 @@ if [[ $MODE == train ]]; then
 		python train_srwddgan.py --dataset celebahq_16_64 --image_size 64 --exp srwavediff_celebahq_exp3_atn16_wg12224_d5_recloss_500ep --num_channels 24 \
 			--num_channels_dae 64 --ch_mult 1 2 2 2 4 --num_timesteps 2 \
 			--num_res_blocks 2 --batch_size 128 --num_epoch 500 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
-			--z_emb_dim 256 --lr_d 1e-4 --lr_g 2e-4 --lazy_reg 10 --save_content \
+			--cond_emb_dim 256 --lr_d 1e-4 --lr_g 2e-4 --lazy_reg 10 --save_content \
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_64/ \
 			--master_port $MASTER_PORT \
 			--current_resolution 32 --attn_resolution 16 --num_disc_layers 5 --rec_loss \
@@ -46,7 +46,7 @@ if [[ $MODE == train ]]; then
 		python train_srwddgan.py --dataset df2k_128_512 --image_size 512 --exp srwavediff_df2k_exp1_atn16_wg12224_d6_recloss_200ep --num_channels 24 \
 			--num_channels_dae 64 --ch_mult 1 2 2 2 4 --num_timesteps 4 \
 			--num_res_blocks 2 --batch_size 16 --num_epoch 200 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
-			--z_emb_dim 256 --lr_d 1e-4 --lr_g 1.6e-4 --lazy_reg 10 --save_content \
+			--cond_emb_dim 256 --lr_d 1e-4 --lr_g 1.6e-4 --lazy_reg 10 --save_content \
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/df2k_128_512/ \
 			--master_port $MASTER_PORT \
 			--current_resolution 256 --attn_resolution 16 --num_disc_layers 6 --rec_loss \
