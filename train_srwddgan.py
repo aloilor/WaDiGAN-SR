@@ -55,26 +55,15 @@ def train(rank, gpu, args):
             copy_source(__file__, exp_path)
             shutil.copytree('score_sde/models',
                             os.path.join(exp_path, 'score_sde/models'))
-   
-    # # wandb init
-    # run = wandb.init(
-    #     # Set the project where this run will be logged
-    #     project="srwavediff",
-    #     name="experiment_1",
-    #     resume=True,
-    #     # Track hyperparameters and run metadata
-    #     config={
-    #         "epochs": args.num_epoch,
-    #     },
-    # )
-
 
     # train set and test set
     dataset = create_dataset(args)
 
-    train_size = int(0.80 * len(dataset))  # 80% for training
-    test_size = len(dataset) - train_size  # 20% for testing
-      
+    # 0.8;0.2 for celebA
+    # 0.9;0.1 for DIV2K
+    train_size = int(0.90 * len(dataset))  
+    test_size = len(dataset) - train_size  
+
     # Set a seed for reproducibility
     torch.manual_seed(42) 
     train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
@@ -156,7 +145,6 @@ def train(rank, gpu, args):
     if not args.use_pytorch_wavelet:
         dwt = DWT_2D("haar")
         iwt = IDWT_2D("haar")
-
 
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
@@ -270,12 +258,8 @@ def train(rank, gpu, args):
                 if global_step % args.lazy_reg == 0:
                     grad_penalty_call(args, D_real, x_t)
 
-            # sr and x(t+1) channel wise concat :
-            # x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
-
             # train with fake
             x_0_predict = netG(x_tp1.detach(), t, sr_data)
-
 
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t) # x(t-1) fake 
 
@@ -300,9 +284,6 @@ def train(rank, gpu, args):
             t = torch.randint(0, args.num_timesteps,
                               (real_data.size(0),), device=device)
             x_t, x_tp1 = q_sample_pairs(coeff, real_data, t)
-
-            # sr and x(t+1) concat:
-            # x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
             x_0_predict = netG(x_tp1.detach(), t, sr_data)
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
