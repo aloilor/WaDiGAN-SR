@@ -522,7 +522,7 @@ if __name__ == '__main__':
                         help='address for master')
     parser.add_argument('--master_port', type=str, default='6002',
                         help='port for master')
-    parser.add_argument('--num_workers', type=int, default=1,
+    parser.add_argument('--num_workers', type=int, default=0,
                         help='num_workers')
 
     # super resolution
