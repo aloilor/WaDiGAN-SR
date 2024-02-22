@@ -52,6 +52,16 @@ if [[ $MODE == train ]]; then
 			--current_resolution 256 --attn_resolution 16 --num_disc_layers 6 --rec_loss \
 			--net_type wavelet \
 			--l_resolution 128 --h_resolution 512 \
+
+	elif [[ $DATASET == div2k_128_512 ]]; then #same as celebahq_256 - might need to revisit later
+		python train_srwddgan.py --dataset celebahq_16_128 --image_size 512 --exp div2k_128_512_batch16_ts4_atn16_wg12224_d6_recloss_200ep --num_channels 24 \
+			--num_channels_dae 64 --ch_mult 1 2 2 2 4 --num_timesteps 4 \
+			--num_res_blocks 2 --batch_size 16 --num_epoch 200 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
+			--cond_emb_dim 256 --lr_d 1e-4 --lr_g 1.6e-4 --lazy_reg 10 --save_content \
+			--datadir /content/gdrive/MyDrive/srwavediff/datasets/celebahq_16_128/ \
+			--master_port $MASTER_PORT \
+			--current_resolution 256 --attn_resolution 16 --num_disc_layers 6 --rec_loss \
+			--l_resolution 128 --h_resolution 512 \
 			
 	fi
 else
