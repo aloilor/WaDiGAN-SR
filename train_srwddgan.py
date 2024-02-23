@@ -182,8 +182,8 @@ def train(rank, gpu, args):
         schedulerD.load_state_dict(checkpoint['schedulerD'])
 
         global_step = checkpoint['global_step']
-        print("=> loaded checkpoint (epoch {})"
-              .format(checkpoint['epoch']))
+        print("=> loaded checkpoint (epoch {}, iteration{})"
+              .format(checkpoint['epoch'],checkpoint['global_step']))
     else:
         global_step, epoch, init_epoch = 0, 0, 0
 
@@ -310,7 +310,6 @@ def train(rank, gpu, args):
                     loss_file.close()
                     print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(
                         epoch, global_step, errG.item(), errD.item()))
-                    # wandb.log({"gen_loss": errG.item(), "disc_loss": errD.item()})
 
 
         if not args.no_lr_decay:
@@ -318,16 +317,16 @@ def train(rank, gpu, args):
             schedulerD.step()
 
         if rank == 0:
-            if epoch % 1 == 0:
+            if global_step % args.save_content_every == 0:
                 with torch.no_grad():
                     # saving SR images 
                     torchvision.utils.save_image(sr_image, os.path.join(
-                        exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
+                        exp_path, 'sr_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
 
                     # saving posterior samples 
                     x_pos_sample = x_pos_sample[:, :3]
                     torchvision.utils.save_image(x_pos_sample, os.path.join(
-                        exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
+                        exp_path, 'xpos_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
 
                     # inference on test batch
                     x_t_1 = torch.randn_like(real_data)
@@ -362,22 +361,22 @@ def train(rank, gpu, args):
 
                     # saving predicted samples
                     torchvision.utils.save_image(x_0_predict, os.path.join(
-                        exp_path, 'x0_prediction_epoch_{}.png'.format(epoch)), normalize=True)
+                        exp_path, 'x0_prediction_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
 
                     #saving real data
                     torchvision.utils.save_image(
-                        real_data, os.path.join(exp_path, 'real_data_epoch_{}.png'.format(epoch)))
+                        real_data, os.path.join(exp_path, 'real_data_epoch_{}_iteration_{}.png'.format(epoch,global_step)))
 
                     # saving resoluted test set images
                     torchvision.utils.save_image(resoluted, os.path.join(
-                        exp_path, 'resoluted_test_epoch_{}.png'.format(epoch)), normalize=True)
+                        exp_path, 'resoluted_test_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
 
                     # saving resoluted train set images
                     torchvision.utils.save_image(resoluted_train, os.path.join(
-                        exp_path, 'resoluted_train_epoch_{}.png'.format(epoch)), normalize=True)
+                        exp_path, 'resoluted_train_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
 
             if args.save_content:
-                if epoch % args.save_content_every == 0:
+                if global_step % args.save_content_every == 0:
                     content = {'epoch': epoch + 1, 'global_step': global_step, 'args': args,
                                'netG_dict': netG.state_dict(), 'optimizerG': optimizerG.state_dict(),
                                'schedulerG': schedulerG.state_dict(), 'netD_dict': netD.state_dict(),
@@ -386,13 +385,13 @@ def train(rank, gpu, args):
                     print('Content saved.')
 
 
-            if epoch % args.save_ckpt_every == 0:
+            if global_step % args.save_ckpt_every == 0:
                 if args.use_ema:
                     optimizerG.swap_parameters_with_ema(
                         store_params_in_ema=True)
 
                 torch.save(netG.state_dict(), os.path.join(
-                    exp_path, 'netG_{}.pth'.format(epoch)))
+                    exp_path, 'netG_{}_iteration_{}.pth'.format(epoch,global_step)))
                 if args.use_ema:
                     optimizerG.swap_parameters_with_ema(
                         store_params_in_ema=True)
@@ -504,10 +503,10 @@ if __name__ == '__main__':
     parser.add_argument("--no_use_residual", action="store_true")
 
     parser.add_argument('--save_content', action='store_true', default=False)
-    parser.add_argument('--save_content_every', type=int, default=1,
-                        help='save content for resuming every x epochs')
-    parser.add_argument('--save_ckpt_every', type=int,default=1, 
-                        help='save ckpt every x epochs')
+    parser.add_argument('--save_content_every', type=int, default=1000,
+                        help='save content for resuming every x iterations')
+    parser.add_argument('--save_ckpt_every', type=int,default=1000, 
+                        help='save ckpt every x iterations')
 
     # ddp
     parser.add_argument('--num_proc_node', type=int, default=1,
