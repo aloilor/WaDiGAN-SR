@@ -31,7 +31,7 @@ If you don't have the data, you can prepare it in the following way:
 
 Download [CelebaHQ 256x256](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256).
 
-Use the following script to prepare the dataset in PNG or LMDB format:
+Use the following script to prepare the dataset in PNG or LMDB format:  
 **IMPORTANT**: be sure to have the images in the folder sequentially numbered, otherwise the conversion into LMDB won't work.
 ```
 # Resize to get 16×16 LR_IMGS and 128×128 HR_IMGS, then prepare 128×128 Fake SR_IMGS by bicubic interpolation
