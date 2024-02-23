@@ -53,7 +53,7 @@ if [[ $MODE == train ]]; then
 			--net_type wavelet \
 			--l_resolution 128 --h_resolution 512 \
 
-	elif [[ $DATASET == div2k_128_512 ]]; then #same as celebahq_256 - might need to revisit later
+	elif [[ $DATASET == div2k_128_512 ]]; then 
 		python train_srwddgan.py --dataset div2k_128_512 --image_size 512 --exp div2k_128_512_batch16_ts4_atn16_wg12224_d6_recloss_200ep --num_channels 24 \
 			--num_channels_dae 64 --ch_mult 1 2 2 2 4 --num_timesteps 4 \
 			--num_res_blocks 2 --batch_size 16 --num_epoch 200 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
