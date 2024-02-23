@@ -169,10 +169,9 @@ def train(rank, gpu, args):
 
     if args.resume or os.path.exists(os.path.join(exp_path, 'content.pth')):
         checkpoint_file = os.path.join(exp_path, 'content.pth')
-        checkpoint = torch.load(checkpoint_file, map_location='cpu')
+        checkpoint = torch.load(checkpoint_file, map_location=device)
         init_epoch = checkpoint['epoch']
         epoch = init_epoch
-        checkpoint = checkpoint.cuda()
         # load G
         netG.load_state_dict(checkpoint['netG_dict'])
         optimizerG.load_state_dict(checkpoint['optimizerG'])
@@ -185,6 +184,11 @@ def train(rank, gpu, args):
         global_step = checkpoint['global_step']
         print("=> loaded checkpoint (epoch {}, iteration{})"
               .format(checkpoint['epoch'],checkpoint['global_step']))
+        
+        # clean the gpu to make sure we don't run OOM
+        del checkpoint
+        torch.cuda.empty_cache()
+        torch.cuda.empty_cache() 
     else:
         global_step, epoch, init_epoch = 0, 0, 0
 
