@@ -60,7 +60,7 @@ def train(rank, gpu, args):
     dataset = create_dataset(args)
 
     # 0.8;0.2 for celebA
-    # 0.9;0.1 for DIV2K
+    # 0.9;0.1 for df2k
     train_size = int(0.90 * len(dataset))  
     test_size = len(dataset) - train_size  
 
