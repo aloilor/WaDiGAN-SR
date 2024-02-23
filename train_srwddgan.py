@@ -320,7 +320,7 @@ def train(rank, gpu, args):
                 #save content
                 if args.save_content:
                     if global_step % args.save_content_every == 0:
-                        content = {'epoch': epoch + 1, 'global_step': global_step, 'args': args,
+                        content = {'epoch': epoch, 'global_step': global_step, 'args': args,
                                 'netG_dict': netG.state_dict(), 'optimizerG': optimizerG.state_dict(),
                                 'schedulerG': schedulerG.state_dict(), 'netD_dict': netD.state_dict(),
                                 'optimizerD': optimizerD.state_dict(), 'schedulerD': schedulerD.state_dict()}
