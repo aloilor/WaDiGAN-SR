@@ -57,6 +57,8 @@ class LRHRDataset(Dataset):
     def __getitem__(self, index):
         img_HR = None
         img_LR = None
+        
+        print ("Current index is: ", index)
 
         if self.datatype == 'lmdb':
             # retrieves images bytes
