@@ -48,5 +48,16 @@ def create_dataset(args):
             data_len=-1,
             need_LR=False
             )
+    elif args.dataset == 'df2k_128_512':
+        dataset = LRHRDataset(
+            dataroot=args.datadir,
+            datatype='lmdb',
+            l_resolution=args.l_resolution,
+            r_resolution=args.h_resolution,
+            split="train",
+            data_len=-1,
+            need_LR=False
+            )
+
 
     return dataset

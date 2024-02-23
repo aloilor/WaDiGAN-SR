@@ -58,8 +58,6 @@ class LRHRDataset(Dataset):
         img_HR = None
         img_LR = None
         
-        print ("Current index is: ", index)
-
         if self.datatype == 'lmdb':
             # retrieves images bytes
             with self.env.begin(write=False) as txn:

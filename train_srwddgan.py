@@ -112,7 +112,7 @@ def train(rank, gpu, args):
         netD = disc_net[0](nc=args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
-    elif args.dataset in ['celebahq_16_128']:
+    elif args.dataset in ['celebahq_16_128', 'div2k_128_512', 'df2k_128_512']:
         # large images disc
         print("GEN: {}, DISC: large images disc\n".format(gen_net))
         netD = disc_net[1](nc=args.num_channels, ngf=args.ngf,
