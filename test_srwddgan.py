@@ -42,8 +42,8 @@ def sample_and_test(args):
 
 
     netG = gen_net(args).to(device)
-    ckpt = torch.load('/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/netG_{}.pth'.format(
-        args.dataset, args.exp, args.epoch_id), map_location=device)
+    ckpt = torch.load('/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/netG_{}_iteration_{}.pth'.format(
+        args.dataset, args.exp, args.epoch_id, args.num_iters), map_location=device)
 
     # loading weights from ddp in single gpu
     for key in list(ckpt.keys()):
@@ -237,7 +237,7 @@ def sample_and_test(args):
                 
 
                 print("Results are saved at tot_sr_id{}.jpg".format(iteration))
-                if (iteration >= 95):
+                if (iteration >= 100):
                     exit(0)
 
 
