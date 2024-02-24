@@ -89,7 +89,7 @@ else
 			# --measure_time \
 
 	elif [[ $DATASET == df2k_128_512 ]]; then
-		python test_srwddgan.py --dataset df2k_128_512 --image_size 512 --exp df2k_128_512_batch16_ts4_atn16_wg12224_d6_recloss_200ep-64_exp3_atn16_wg12224_d5_recloss_500ep --num_channels 24 --num_channels_dae 64 \
+		python test_srwddgan.py --dataset df2k_128_512 --image_size 512 --exp df2k_128_512_batch16_ts4_atn16_wg12224_d6_recloss_200ep --num_channels 24 --num_channels_dae 64 \
 			--ch_mult 1 2 2 2 4 --num_timesteps 4 --num_res_blocks 2  --epoch_id 3 --num_iters 38000   \
 			--current_resolution 256 --attn_resolutions 16 \
 			--net_type wavelet \
