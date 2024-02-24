@@ -96,7 +96,7 @@ else
 			--l_resolution 128 --h_resolution 512 \
 			--datadir /content/gdrive/MyDrive/srwavediff/datasets/df2k_128_512/ \
 			--batch_size 2 \
-			# --compute_fid --real_img_dir ./pytorch_fid/celebahq64_stats.npz \
+			--compute_fid --real_img_dir ./pytorch_fid/df2k_512_stats.npz \
 			# --measure_time \
 
 

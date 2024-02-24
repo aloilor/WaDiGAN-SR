@@ -142,7 +142,7 @@ def sample_and_test(args):
         exit(0)
 
     if args.compute_fid: # fid evaluation
-        for i in range(95):
+        for i in range(1002):
             with torch.no_grad():
 
                 sample = next(iter(test_data_loader))
