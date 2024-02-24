@@ -251,6 +251,8 @@ if __name__ == '__main__':
     parser.add_argument('--measure_time', action='store_true', default=False,
                         help='whether or not measure time')
     parser.add_argument('--epoch_id', type=int, default=1000)
+    parser.add_argument('--num_iters', type=int, default=1000)
+
     parser.add_argument('--num_channels', type=int, default=12,
                         help='channel of wavelet subbands')
     parser.add_argument('--centered', action='store_false', default=True,
