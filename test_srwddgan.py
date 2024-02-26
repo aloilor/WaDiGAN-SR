@@ -13,6 +13,7 @@ from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
 from pytorch_fid.fid_score import calculate_fid_given_paths
 from score_sde.models.ncsnpp_generator_adagn import  WaveletNCSNpp
 from datasets_prep.dataset import create_dataset
+from pytorch_wavelets import DWTForward, DWTInverse
 
 
 
@@ -25,6 +26,8 @@ def sample_and_test(args):
         real_img_dir = 'pytorch_fid/celebahq128_stats.npz'
     elif args.dataset == 'celebahq_16_64':
         real_img_dir = 'pytorch_fid/celebahq64_stats.npz'
+    elif args.dataset == 'df2k_128_512':
+        real_img_dir = 'pytorch_fid/df2k_512_stats.npz'
     else:
         real_img_dir = args.real_img_dir
 
@@ -52,16 +55,19 @@ def sample_and_test(args):
     netG.load_state_dict(ckpt, strict=False)
     netG.eval()
 
-
-
     if not args.use_pytorch_wavelet:
+        dwt = DWT_2D("haar")
         iwt = IDWT_2D("haar")
+    else:
+        dwt = DWTForward(J=1, mode='zero', wave='haar').cuda()
+        iwt = DWTInverse(mode='zero', wave='haar').cuda()
+    num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
+
 
     T = get_time_schedule(args, device)
 
     pos_coeff = Posterior_Coefficients(args, device)
 
-    iters_needed = 50000 // args.batch_size
 
     save_dir = "/content/gdrive/MyDrive/srwavediff/results/{}/".format(args.exp)
     if not os.path.exists(save_dir):
@@ -72,8 +78,8 @@ def sample_and_test(args):
 
     # test set
     dataset = create_dataset(args)
-    train_size = int(0.80 * len(dataset))  # 80% for training
-    test_size = len(dataset) - train_size  # 20% for testing
+    train_size = int(0.90 * len(dataset))  # 90% for training
+    test_size = len(dataset) - train_size  # 10% for testing
       
     # Set a seed for reproducibility
     torch.manual_seed(42) 
@@ -86,10 +92,6 @@ def sample_and_test(args):
                                               num_workers=0,
                                               pin_memory=True)
 
-    # wavelet pooling
-    dwt = DWT_2D("haar")
-    iwt = IDWT_2D("haar")
-    num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
     if args.measure_time: # inference time eval
         x_t_1 = torch.randn(1, int(args.num_channels / 2),
@@ -101,7 +103,6 @@ def sample_and_test(args):
         timings = np.zeros((repetitions, 1))
         # GPU-WARM-UP
 
-        idx = 0
         for _ in range(10):
             _ = sample_from_model(
                 pos_coeff, netG, args.num_timesteps, x_t_1, x_t_1, T, args)
@@ -112,12 +113,15 @@ def sample_and_test(args):
                 print("computing time, repetition number: ", rep)
                 sample = next(iter(test_data_loader)) # samples of the test set to every 2 epochs 
                 lr = sample['SR'] 
-                index = sample['Index']
 
                 lr = lr.to(device, non_blocking=True)
                 # wavelet transform lr image
-                for i in range(num_levels):
-                    lrll, lrlh, lrhl, lrhh = dwt(lr)
+                if not args.use_pytorch_wavelet:
+                    for iti in range(num_levels):
+                        lrll, lrlh, lrhl, lrhh = dwt(lr) # [b, 3, h, w], [b, 3, 3, h, w]
+                else:
+                    lrll, lrh = dwt(lr)  # [b, 3, h, w], [b, 3, 3, h, w]
+                    lrlh, lrhl, lrhh = torch.unbind(lrh[0], dim=2)
                 lrw = torch.cat([lrll, lrlh, lrhl, lrhh], dim=1) # [b, 12, h/2, w/2]
                 # normalize sr_data
                 lrw = lrw / 2.0  # [-1, 1]
@@ -129,8 +133,13 @@ def sample_and_test(args):
                     pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
 
                 resoluted *= 2
-                resoluted = iwt(
-                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+                if not args.use_pytorch_wavelet:
+                    resoluted = iwt(
+                        resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+                else:
+                    resoluted = iwt((resoluted[:, :3], [torch.stack(
+                        (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
+                resoluted = torch.clamp(resoluted, -1, 1)
                 ender.record()
                 # WAIT FOR GPU SYNC
                 torch.cuda.synchronize()
@@ -144,14 +153,17 @@ def sample_and_test(args):
     if args.compute_fid: # fid evaluation
         for i in range(1002):
             with torch.no_grad():
-
                 sample = next(iter(test_data_loader))
                 lr = sample['SR'] 
                 
                 lr = lr.to(device, non_blocking=True)
                 # wavelet transform lr image
-                for z in range(num_levels):
-                    lrll, lrlh, lrhl, lrhh = dwt(lr)
+                if not args.use_pytorch_wavelet:
+                    for iti in range(num_levels):
+                        lrll, lrlh, lrhl, lrhh = dwt(lr) # [b, 3, h, w], [b, 3, 3, h, w]
+                else:
+                    lrll, lrh = dwt(lr)  # [b, 3, h, w], [b, 3, 3, h, w]
+                    lrlh, lrhl, lrhh = torch.unbind(lrh[0], dim=2)
                 lrw = torch.cat([lrll, lrlh, lrhl, lrhh], dim=1) # [b, 12, h/2, w/2]
                 # normalize sr_data
                 lrw = lrw / 2.0  # [-1, 1]
@@ -164,8 +176,12 @@ def sample_and_test(args):
                     pos_coeff, netG, args.num_timesteps, x_t_1, lrw, T, args)
 
                 resoluted *= 2
-                resoluted = iwt(
-                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+                if not args.use_pytorch_wavelet:
+                    resoluted = iwt(
+                        resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+                else:
+                    resoluted = iwt((resoluted[:, :3], [torch.stack(
+                        (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
                 resoluted = torch.clamp(resoluted, -1, 1)
 
                 resoluted = to_range_0_1(resoluted)  # 0-1
@@ -187,15 +203,17 @@ def sample_and_test(args):
                 print("iteration: ", iteration)
                 hr = sample['HR'] 
                 lr = sample['SR'] 
-                index = sample['Index']
-
 
                 lr = lr.to(device, non_blocking=True)
-                # wavelet transform lr image
-                for i in range(num_levels):
-                    lrll, lrlh, lrhl, lrhh = dwt(lr)
+                # wavelet transform LR image
+                if not args.use_pytorch_wavelet:
+                    for iti in range(num_levels):
+                        lrll, lrlh, lrhl, lrhh = dwt(lr) # [b, 3, h, w], [b, 3, 3, h, w]
+                else:
+                    lrll, lrh = dwt(lr)  # [b, 3, h, w], [b, 3, 3, h, w]
+                    lrlh, lrhl, lrhh = torch.unbind(lrh[0], dim=2)
                 lrw = torch.cat([lrll, lrlh, lrhl, lrhh], dim=1) # [b, 12, h/2, w/2]
-                # normalize sr_data
+                # normalize LR data
                 lrw = lrw / 2.0  # [-1, 1]
                 assert -1 <= lrw.min() < 0
                 assert 0 < lrw.max() <= 1
@@ -209,7 +227,9 @@ def sample_and_test(args):
                 if not args.use_pytorch_wavelet:
                     resoluted = iwt(
                         resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
-
+                else:
+                    resoluted = iwt((resoluted[:, :3], [torch.stack(
+                        (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
                 resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
 
                 # saving HR images 
@@ -219,23 +239,20 @@ def sample_and_test(args):
                     torchvision.utils.save_image(x, os.path.join(
                         save_dir, '{}_{}_hr.png'.format(iteration, i)), normalize = True)
 
-                
                 # saving LR test set images 
                 torchvision.utils.save_image(lr, os.path.join(
                     save_dir, 'tot_lr_id{}.png'.format(iteration)), normalize=True)
                 for i, x in enumerate(lr): # save each image
                     torchvision.utils.save_image(x, os.path.join(
                         save_dir, '{}_{}_lr.png'.format(iteration, i)), normalize = True)
-
-                
-                #saving sr images
+                    
+                #saving SR images
                 torchvision.utils.save_image(
                     resoluted, os.path.join (save_dir,'tot_sr_id{}.jpg'.format(iteration)), normalize=True)
                 for i, x in enumerate(resoluted): # save each image
                     torchvision.utils.save_image(x, os.path.join(
                         save_dir, '{}_{}_sr.png'.format(iteration, i)), normalize = True)
                 
-
                 print("Results are saved at tot_sr_id{}.jpg".format(iteration))
                 if (iteration >= 100):
                     exit(0)

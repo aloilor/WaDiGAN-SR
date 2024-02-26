@@ -14,9 +14,9 @@ from diffusion import sample_from_model, sample_posterior, \
     q_sample_pairs, get_time_schedule, \
     Posterior_Coefficients, Diffusion_Coefficients
 from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
+from pytorch_wavelets import DWTForward, DWTInverse
 from torch.multiprocessing import Process
 from utils import init_processes, copy_source, broadcast_params
-#from pytorch_wavelets import DWTForward, DWTInverse
 
 
 def grad_penalty_call(args, D_real, x_t):
@@ -146,11 +146,9 @@ def train(rank, gpu, args):
     if not args.use_pytorch_wavelet:
         dwt = DWT_2D("haar")
         iwt = IDWT_2D("haar")
-    # else:
-    #     dwt = DWTForward(J=1, mode='zero', wave='haar').cuda()
-    #     iwt = DWTInverse(mode='zero', wave='haar').cuda()
-
-
+    else:
+        dwt = DWTForward(J=1, mode='zero', wave='haar').cuda()
+        iwt = DWTInverse(mode='zero', wave='haar').cuda()
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
     test_sr = test_sr_image.to(device, non_blocking=True)
@@ -158,8 +156,9 @@ def train(rank, gpu, args):
     if not args.use_pytorch_wavelet:
         for i in range(num_levels):
             test_srll, test_srlh, test_srhl, test_srhh = dwt(test_sr)
-
-    
+    else:
+        test_srll, test_srh = dwt(test_sr)  # [b, 3, h, w], [b, 3, 3, h, w]
+        test_srlh, test_srhl, test_srhh = torch.unbind(test_srh[0], dim=2)
     test_sr_data = torch.cat([test_srll, test_srlh, test_srhl, test_srhh], dim=1) # [b, 12, h/2, w/2]
 
     # normalize sr_data
@@ -223,8 +222,9 @@ def train(rank, gpu, args):
             if not args.use_pytorch_wavelet:
                 for i in range(num_levels):
                     xll, xlh, xhl, xhh = dwt(x0) # [b, 3, h, w], [b, 3, 3, h, w]
-
-
+            else:
+                xll, xh = dwt(x0)  # [b, 3, h, w], [b, 3, 3, h, w]
+                xlh, xhl, xhh = torch.unbind(xh[0], dim=2)
             real_data = torch.cat([xll, xlh, xhl, xhh], dim=1)  # [b, 12, h/2, w/2]
 
             # normalize real_data
@@ -240,14 +240,15 @@ def train(rank, gpu, args):
             if not args.use_pytorch_wavelet:
                 for i in range(num_levels):
                     srll, srlh, srhl, srhh = dwt(sr)
-            
+            else:
+                srll, srh = dwt(sr)  # [b, 3, h, w], [b, 3, 3, h, w]
+                srlh, srhl, srhh = torch.unbind(srh[0], dim=2) 
             sr_data = torch.cat([srll, srlh, srhl, srhh], dim=1) # [b, 12, h/2, w/2]
+
             # normalize sr_data
             sr_data = sr_data / 2.0  # [-1, 1]
             assert -1 <= sr_data.min() < 0
             assert 0 < sr_data.max() <= 1
-
-
 
             # sample t
             t = torch.randint(0, args.num_timesteps,
@@ -358,15 +359,12 @@ def train(rank, gpu, args):
 
                         # inference on test batch
                         x_t_1 = torch.randn_like(real_data)
-
                         resoluted = sample_from_model(
                             pos_coeff, netG, args.num_timesteps, x_t_1, test_sr_data, T, args)
-
 
                         #inference on train batch
                         resoluted_train = sample_from_model(
                             pos_coeff, netG, args.num_timesteps, x_t_1, sr_data, T, args)
-
 
                         x_0_predict *= 2
                         real_data *= 2
@@ -381,7 +379,16 @@ def train(rank, gpu, args):
                                 resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
                             resoluted_train = iwt(
                                 resoluted_train[:, :3], resoluted_train[:, 3:6], resoluted_train[:, 6:9], resoluted_train[:, 9:12])
-                    
+                        else: 
+                            x_0_predict = iwt((x_0_predict[:, :3], [torch.stack(
+                                        (x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12]), dim=2)]))
+                            real_data = iwt((real_data[:, :3], [torch.stack(
+                                        (real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12]), dim=2)]))
+                            resoluted = iwt((resoluted[:, :3], [torch.stack(
+                                        (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
+                            resoluted = iwt((resoluted_train[:, :3], [torch.stack(
+                                        (resoluted_train[:, 3:6], resoluted_train[:, 6:9], resoluted_train[:, 9:12]), dim=2)]))
+
                         x_0_predict = (torch.clamp(x_0_predict, -1, 1) + 1) / 2  # 0-1
                         real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
                         resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
