@@ -9,7 +9,7 @@ numpy
 pandas
 tqdm
 opencv-python
-PyWavelets
+
 
 
 

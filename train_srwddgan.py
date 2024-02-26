@@ -8,7 +8,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
-import pytorch_wavelet
 
 from datasets_prep.dataset import create_dataset
 from diffusion import sample_from_model, sample_posterior, \
