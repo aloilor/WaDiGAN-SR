@@ -53,7 +53,7 @@ if [[ $MODE == train ]]; then
 			--l_resolution 128 --h_resolution 512 \
 
 	elif [[ $DATASET == df2k_128_512 ]]; then 
-		python train_srwddgan.py --dataset df2k_128_512 --image_size 512 --exp df2k_128_512_batch2_ts2_atn16_wg112244_d5_recloss_10ep --num_channels 24 \
+		python train_srwddgan.py --dataset df2k_128_512 --image_size 512 --exp df2k_128_512_batch2_ts2_atn16_wg112244_d6_recloss_10ep --num_channels 24 \
 			--num_channels_dae 64 --ch_mult 1 1 2 2 4 4 --num_timesteps 2 \
 			--num_res_blocks 2 --batch_size 2 --num_epoch 10 --ngf 64 --embedding_type positional --use_ema --r1_gamma 2. \
 			--cond_emb_dim 256 --lr_d 1.25e-4 --lr_g 1.6e-4 --lazy_reg 10 --save_content \
