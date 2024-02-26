@@ -7,11 +7,12 @@ lmdb
 scipy
 ninja
 einops
-PyWavelets
 numpy
 pandas
 tqdm
 opencv-python
+PyWavelets
+
 
 
 
