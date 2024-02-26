@@ -16,6 +16,7 @@ from diffusion import sample_from_model, sample_posterior, \
 from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
 from torch.multiprocessing import Process
 from utils import init_processes, copy_source, broadcast_params
+from pytorch_wavelets import DWTForward, DWTInverse
 
 
 def grad_penalty_call(args, D_real, x_t):
@@ -145,6 +146,10 @@ def train(rank, gpu, args):
     if not args.use_pytorch_wavelet:
         dwt = DWT_2D("haar")
         iwt = IDWT_2D("haar")
+    else:
+        dwt = DWTForward(J=1, mode='zero', wave='haar').cuda()
+        iwt = DWTInverse(mode='zero', wave='haar').cuda()
+
 
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
