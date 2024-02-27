@@ -147,6 +147,7 @@ def train(rank, gpu, args):
         dwt = DWT_2D("haar")
         iwt = IDWT_2D("haar")
     else:
+        print("Using pytorch_wavelets")
         dwt = DWTForward(J=1, mode='zero', wave='haar').cuda()
         iwt = DWTInverse(mode='zero', wave='haar').cuda()
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
