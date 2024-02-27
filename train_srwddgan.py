@@ -387,7 +387,7 @@ def train(rank, gpu, args):
                                         (real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12]), dim=2)]))
                             resoluted = iwt((resoluted[:, :3], [torch.stack(
                                         (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
-                            resoluted = iwt((resoluted_train[:, :3], [torch.stack(
+                            resoluted_train = iwt((resoluted_train[:, :3], [torch.stack(
                                         (resoluted_train[:, 3:6], resoluted_train[:, 6:9], resoluted_train[:, 9:12]), dim=2)]))
 
                         x_0_predict = (torch.clamp(x_0_predict, -1, 1) + 1) / 2  # 0-1
