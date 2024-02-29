@@ -1,5 +1,3 @@
-torchvision
-pillow
 matplotlib
 tensorboard
 tensorboardX
@@ -7,11 +5,12 @@ lmdb
 scipy
 ninja
 einops
-PyWavelets
 numpy
 pandas
 tqdm
 opencv-python
+
+
 
 
 

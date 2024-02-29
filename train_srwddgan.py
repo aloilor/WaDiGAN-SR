@@ -14,6 +14,7 @@ from diffusion import sample_from_model, sample_posterior, \
     q_sample_pairs, get_time_schedule, \
     Posterior_Coefficients, Diffusion_Coefficients
 from DWT_IDWT.DWT_IDWT_layer import DWT_2D, IDWT_2D
+from pytorch_wavelets import DWTForward, DWTInverse
 from torch.multiprocessing import Process
 from utils import init_processes, copy_source, broadcast_params
 
@@ -55,26 +56,15 @@ def train(rank, gpu, args):
             copy_source(__file__, exp_path)
             shutil.copytree('score_sde/models',
                             os.path.join(exp_path, 'score_sde/models'))
-   
-    # # wandb init
-    # run = wandb.init(
-    #     # Set the project where this run will be logged
-    #     project="srwavediff",
-    #     name="experiment_1",
-    #     resume=True,
-    #     # Track hyperparameters and run metadata
-    #     config={
-    #         "epochs": args.num_epoch,
-    #     },
-    # )
-
 
     # train set and test set
     dataset = create_dataset(args)
 
-    train_size = int(0.80 * len(dataset))  # 80% for training
-    test_size = len(dataset) - train_size  # 20% for testing
-      
+    # 0.8;0.2 for celebA
+    # 0.9;0.1 for df2k
+    train_size = int(0.90 * len(dataset))  
+    test_size = len(dataset) - train_size  
+
     # Set a seed for reproducibility
     torch.manual_seed(42) 
     train_set, test_set = torch.utils.data.random_split(dataset, [train_size, test_size])
@@ -123,7 +113,7 @@ def train(rank, gpu, args):
         netD = disc_net[0](nc=args.num_channels, ngf=args.ngf,
                            t_emb_dim=args.t_emb_dim,
                            act=nn.LeakyReLU(0.2), num_layers=args.num_disc_layers).to(device)
-    elif args.dataset in ['celebahq_16_128']:
+    elif args.dataset in ['celebahq_16_128', 'div2k_128_512', 'df2k_128_512']:
         # large images disc
         print("GEN: {}, DISC: large images disc\n".format(gen_net))
         netD = disc_net[1](nc=args.num_channels, ngf=args.ngf,
@@ -156,8 +146,10 @@ def train(rank, gpu, args):
     if not args.use_pytorch_wavelet:
         dwt = DWT_2D("haar")
         iwt = IDWT_2D("haar")
-
-
+    else:
+        print("Using pytorch_wavelets")
+        dwt = DWTForward(J=1, mode='zero', wave='haar').cuda()
+        iwt = DWTInverse(mode='zero', wave='haar').cuda()
     num_levels = int(np.log2(args.ori_image_size // args.current_resolution))
 
     test_sr = test_sr_image.to(device, non_blocking=True)
@@ -165,8 +157,9 @@ def train(rank, gpu, args):
     if not args.use_pytorch_wavelet:
         for i in range(num_levels):
             test_srll, test_srlh, test_srhl, test_srhh = dwt(test_sr)
-
-    
+    else:
+        test_srll, test_srh = dwt(test_sr)  # [b, 3, h, w], [b, 3, 3, h, w]
+        test_srlh, test_srhl, test_srhh = torch.unbind(test_srh[0], dim=2)
     test_sr_data = torch.cat([test_srll, test_srlh, test_srhl, test_srhh], dim=1) # [b, 12, h/2, w/2]
 
     # normalize sr_data
@@ -194,8 +187,13 @@ def train(rank, gpu, args):
         schedulerD.load_state_dict(checkpoint['schedulerD'])
 
         global_step = checkpoint['global_step']
-        print("=> loaded checkpoint (epoch {})"
-              .format(checkpoint['epoch']))
+        print("=> loaded checkpoint (epoch {}, iteration{})"
+              .format(checkpoint['epoch'],checkpoint['global_step']))
+        
+        # clean the gpu to make sure we don't run OOM
+        del checkpoint
+        torch.cuda.empty_cache()
+        torch.cuda.empty_cache() 
     else:
         global_step, epoch, init_epoch = 0, 0, 0
 
@@ -225,8 +223,9 @@ def train(rank, gpu, args):
             if not args.use_pytorch_wavelet:
                 for i in range(num_levels):
                     xll, xlh, xhl, xhh = dwt(x0) # [b, 3, h, w], [b, 3, 3, h, w]
-
-
+            else:
+                xll, xh = dwt(x0)  # [b, 3, h, w], [b, 3, 3, h, w]
+                xlh, xhl, xhh = torch.unbind(xh[0], dim=2)
             real_data = torch.cat([xll, xlh, xhl, xhh], dim=1)  # [b, 12, h/2, w/2]
 
             # normalize real_data
@@ -242,14 +241,15 @@ def train(rank, gpu, args):
             if not args.use_pytorch_wavelet:
                 for i in range(num_levels):
                     srll, srlh, srhl, srhh = dwt(sr)
-            
+            else:
+                srll, srh = dwt(sr)  # [b, 3, h, w], [b, 3, 3, h, w]
+                srlh, srhl, srhh = torch.unbind(srh[0], dim=2) 
             sr_data = torch.cat([srll, srlh, srhl, srhh], dim=1) # [b, 12, h/2, w/2]
+
             # normalize sr_data
             sr_data = sr_data / 2.0  # [-1, 1]
             assert -1 <= sr_data.min() < 0
             assert 0 < sr_data.max() <= 1
-
-
 
             # sample t
             t = torch.randint(0, args.num_timesteps,
@@ -270,12 +270,8 @@ def train(rank, gpu, args):
                 if global_step % args.lazy_reg == 0:
                     grad_penalty_call(args, D_real, x_t)
 
-            # sr and x(t+1) channel wise concat :
-            # x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
-
             # train with fake
             x_0_predict = netG(x_tp1.detach(), t, sr_data)
-
 
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t) # x(t-1) fake 
 
@@ -300,9 +296,6 @@ def train(rank, gpu, args):
             t = torch.randint(0, args.num_timesteps,
                               (real_data.size(0),), device=device)
             x_t, x_tp1 = q_sample_pairs(coeff, real_data, t)
-
-            # sr and x(t+1) concat:
-            # x_tp1_sr = torch.cat( [x_tp1,sr_data], dim=1)
 
             x_0_predict = netG(x_tp1.detach(), t, sr_data)
             x_pos_sample = sample_posterior(pos_coeff, x_0_predict, x_tp1, t)
@@ -329,93 +322,99 @@ def train(rank, gpu, args):
                     loss_file.close()
                     print('epoch {} iteration{}, G Loss: {}, D Loss: {}'.format(
                         epoch, global_step, errG.item(), errD.item()))
-                    # wandb.log({"gen_loss": errG.item(), "disc_loss": errD.item()})
 
+            if rank == 0:
+                #save content
+                if args.save_content:
+                    if global_step % args.save_content_every == 0:
+                        content = {'epoch': epoch, 'global_step': global_step, 'args': args,
+                                'netG_dict': netG.state_dict(), 'optimizerG': optimizerG.state_dict(),
+                                'schedulerG': schedulerG.state_dict(), 'netD_dict': netD.state_dict(),
+                                'optimizerD': optimizerD.state_dict(), 'schedulerD': schedulerD.state_dict()}
+                        torch.save(content, os.path.join(exp_path, 'content.pth'))
+                        print('Content saved.')
+                # save checkpoint
+                if global_step % args.save_ckpt_every == 0:
+                    if args.use_ema:
+                        optimizerG.swap_parameters_with_ema(
+                            store_params_in_ema=True)
+
+                    torch.save(netG.state_dict(), os.path.join(
+                        exp_path, 'netG_{}_iteration_{}.pth'.format(epoch,global_step)))
+                    if args.use_ema:
+                        optimizerG.swap_parameters_with_ema(
+                            store_params_in_ema=True)
+                    print("checkpoint saved.")
+
+                # inference round
+                if global_step % args.save_content_every == 0:
+                    with torch.no_grad():
+                        # saving SR images 
+                        torchvision.utils.save_image(sr_image, os.path.join(
+                            exp_path, 'sr_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
+
+                        # saving posterior samples 
+                        x_pos_sample = x_pos_sample[:, :3]
+                        torchvision.utils.save_image(x_pos_sample, os.path.join(
+                            exp_path, 'xpos_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
+
+                        # inference on test batch
+                        x_t_1 = torch.randn_like(real_data)
+                        resoluted = sample_from_model(
+                            pos_coeff, netG, args.num_timesteps, x_t_1, test_sr_data, T, args)
+
+                        #inference on train batch
+                        resoluted_train = sample_from_model(
+                            pos_coeff, netG, args.num_timesteps, x_t_1, sr_data, T, args)
+
+                        x_0_predict *= 2
+                        real_data *= 2
+                        resoluted *= 2
+                        resoluted_train *= 2
+                        if not args.use_pytorch_wavelet:
+                            x_0_predict = iwt(
+                                x_0_predict[:, :3], x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12])
+                            real_data = iwt(
+                                real_data[:, :3], real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12])
+                            resoluted = iwt(
+                                resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
+                            resoluted_train = iwt(
+                                resoluted_train[:, :3], resoluted_train[:, 3:6], resoluted_train[:, 6:9], resoluted_train[:, 9:12])
+                        else: 
+                            x_0_predict = iwt((x_0_predict[:, :3], [torch.stack(
+                                        (x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12]), dim=2)]))
+                            real_data = iwt((real_data[:, :3], [torch.stack(
+                                        (real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12]), dim=2)]))
+                            resoluted = iwt((resoluted[:, :3], [torch.stack(
+                                        (resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12]), dim=2)]))
+                            resoluted_train = iwt((resoluted_train[:, :3], [torch.stack(
+                                        (resoluted_train[:, 3:6], resoluted_train[:, 6:9], resoluted_train[:, 9:12]), dim=2)]))
+
+                        x_0_predict = (torch.clamp(x_0_predict, -1, 1) + 1) / 2  # 0-1
+                        real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
+                        resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
+                        resoluted_train = (torch.clamp(resoluted_train, -1, 1) + 1) / 2  # 0-1
+
+                        # saving predicted samples
+                        torchvision.utils.save_image(x_0_predict, os.path.join(
+                            exp_path, 'x0_prediction_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
+
+                        #saving real data
+                        torchvision.utils.save_image(
+                            real_data, os.path.join(exp_path, 'real_data_epoch_{}_iteration_{}.png'.format(epoch,global_step)))
+
+                        # saving resoluted test set images
+                        torchvision.utils.save_image(resoluted, os.path.join(
+                            exp_path, 'resoluted_test_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
+
+                        # saving resoluted train set images
+                        torchvision.utils.save_image(resoluted_train, os.path.join(
+                            exp_path, 'resoluted_train_epoch_{}_iteration_{}.png'.format(epoch,global_step)), normalize=True)
 
         if not args.no_lr_decay:
             schedulerG.step()
             schedulerD.step()
 
-        if rank == 0:
-            if epoch % 1 == 0:
-                with torch.no_grad():
-                    # saving SR images 
-                    torchvision.utils.save_image(sr_image, os.path.join(
-                        exp_path, 'sr_epoch_{}.png'.format(epoch)), normalize=True)
-
-                    # saving posterior samples 
-                    x_pos_sample = x_pos_sample[:, :3]
-                    torchvision.utils.save_image(x_pos_sample, os.path.join(
-                        exp_path, 'xpos_epoch_{}.png'.format(epoch)), normalize=True)
-
-                    # inference on test batch
-                    x_t_1 = torch.randn_like(real_data)
-
-                    resoluted = sample_from_model(
-                        pos_coeff, netG, args.num_timesteps, x_t_1, test_sr_data, T, args)
-
-
-                    #inference on train batch
-                    resoluted_train = sample_from_model(
-                        pos_coeff, netG, args.num_timesteps, x_t_1, sr_data, T, args)
-
-
-                    x_0_predict *= 2
-                    real_data *= 2
-                    resoluted *= 2
-                    resoluted_train *= 2
-                    if not args.use_pytorch_wavelet:
-                        x_0_predict = iwt(
-                            x_0_predict[:, :3], x_0_predict[:, 3:6], x_0_predict[:, 6:9], x_0_predict[:, 9:12])
-                        real_data = iwt(
-                            real_data[:, :3], real_data[:, 3:6], real_data[:, 6:9], real_data[:, 9:12])
-                        resoluted = iwt(
-                            resoluted[:, :3], resoluted[:, 3:6], resoluted[:, 6:9], resoluted[:, 9:12])
-                        resoluted_train = iwt(
-                            resoluted_train[:, :3], resoluted_train[:, 3:6], resoluted_train[:, 6:9], resoluted_train[:, 9:12])
-                
-                    x_0_predict = (torch.clamp(x_0_predict, -1, 1) + 1) / 2  # 0-1
-                    real_data = (torch.clamp(real_data, -1, 1) + 1) / 2  # 0-1
-                    resoluted = (torch.clamp(resoluted, -1, 1) + 1) / 2  # 0-1
-                    resoluted_train = (torch.clamp(resoluted_train, -1, 1) + 1) / 2  # 0-1
-
-                    # saving predicted samples
-                    torchvision.utils.save_image(x_0_predict, os.path.join(
-                        exp_path, 'x0_prediction_epoch_{}.png'.format(epoch)), normalize=True)
-
-                    #saving real data
-                    torchvision.utils.save_image(
-                        real_data, os.path.join(exp_path, 'real_data_epoch_{}.png'.format(epoch)))
-
-                    # saving resoluted test set images
-                    torchvision.utils.save_image(resoluted, os.path.join(
-                        exp_path, 'resoluted_test_epoch_{}.png'.format(epoch)), normalize=True)
-
-                    # saving resoluted train set images
-                    torchvision.utils.save_image(resoluted_train, os.path.join(
-                        exp_path, 'resoluted_train_epoch_{}.png'.format(epoch)), normalize=True)
-
-            if args.save_content:
-                if epoch % args.save_content_every == 0:
-                    content = {'epoch': epoch + 1, 'global_step': global_step, 'args': args,
-                               'netG_dict': netG.state_dict(), 'optimizerG': optimizerG.state_dict(),
-                               'schedulerG': schedulerG.state_dict(), 'netD_dict': netD.state_dict(),
-                               'optimizerD': optimizerD.state_dict(), 'schedulerD': schedulerD.state_dict()}
-                    torch.save(content, os.path.join(exp_path, 'content.pth'))
-                    print('Content saved.')
-
-
-            if epoch % args.save_ckpt_every == 0:
-                if args.use_ema:
-                    optimizerG.swap_parameters_with_ema(
-                        store_params_in_ema=True)
-
-                torch.save(netG.state_dict(), os.path.join(
-                    exp_path, 'netG_{}.pth'.format(epoch)))
-                if args.use_ema:
-                    optimizerG.swap_parameters_with_ema(
-                        store_params_in_ema=True)
-                print("checkpoint saved.")
 
 
 
@@ -523,10 +522,10 @@ if __name__ == '__main__':
     parser.add_argument("--no_use_residual", action="store_true")
 
     parser.add_argument('--save_content', action='store_true', default=False)
-    parser.add_argument('--save_content_every', type=int, default=1,
-                        help='save content for resuming every x epochs')
-    parser.add_argument('--save_ckpt_every', type=int,default=1, 
-                        help='save ckpt every x epochs')
+    parser.add_argument('--save_content_every', type=int, default=500,
+                        help='save content for resuming every x iterations')
+    parser.add_argument('--save_ckpt_every', type=int,default=500, 
+                        help='save ckpt every x iterations')
 
     # ddp
     parser.add_argument('--num_proc_node', type=int, default=1,
