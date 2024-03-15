@@ -522,9 +522,9 @@ if __name__ == '__main__':
     parser.add_argument("--no_use_residual", action="store_true")
 
     parser.add_argument('--save_content', action='store_true', default=False)
-    parser.add_argument('--save_content_every', type=int, default=500,
+    parser.add_argument('--save_content_every', type=int, default=2500,
                         help='save content for resuming every x iterations')
-    parser.add_argument('--save_ckpt_every', type=int,default=500, 
+    parser.add_argument('--save_ckpt_every', type=int,default=2500, 
                         help='save ckpt every x iterations')
 
     # ddp
