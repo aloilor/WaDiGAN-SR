@@ -1,5 +1,5 @@
 import argparse
-import core.metrics as Metrics
+import metrics as Metrics
 from PIL import Image
 import numpy as np
 import glob
