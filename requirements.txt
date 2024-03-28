@@ -9,6 +9,7 @@ numpy
 pandas
 tqdm
 opencv-python
+lpips
 
 
 
