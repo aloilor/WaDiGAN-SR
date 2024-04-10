@@ -7,7 +7,6 @@
     <br>
     <a href="#results">Results</a> | <a href="#evaluation">Evaluation</a> | <a href="#acknowledgments">Acknowledgments</a> 
     <br>
-    <br>
 </div>
 
 ### Abstract ###
