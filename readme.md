@@ -155,9 +155,9 @@ python /benchmark/eval.py -p [result root]
 ```
 
 ## Acknowledgments
-- WaveDiff [implementation](https://github.com/VinAIResearch/WaveDiff) and [paper](https://arxiv.org/abs/2211.16152);
-- SR3 [unofficial implementation](https://github.com/Janspiry/Image-Super-Resolution-via-Iterative-Refinement/tree/master) and [paper](https://arxiv.org/abs/2104.07636);
-- Wavelet transforms [implementation1](https://github.com/LiQiufu/WaveCNet) and [implementation2](https://github.com/fbcotter/pytorch_wavelets);
+- WaveDiff [code](https://github.com/VinAIResearch/WaveDiff) and [paper](https://arxiv.org/abs/2211.16152);
+- SR3 [unofficial code](https://github.com/Janspiry/Image-Super-Resolution-via-Iterative-Refinement/tree/master) and [paper](https://arxiv.org/abs/2104.07636);
+- Wavelet transforms [code1](https://github.com/LiQiufu/WaveCNet) and [code2](https://github.com/fbcotter/pytorch_wavelets);
 - DiWa [paper](https://arxiv.org/abs/2304.01994);
 - ESRGAN [paper](https://arxiv.org/abs/1809.00219);
 - BasicSR [code](https://github.com/XPixelGroup/BasicSR) for its ESRGAN implementation.
