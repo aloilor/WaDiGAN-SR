@@ -45,8 +45,11 @@ def sample_and_test(args):
 
 
     netG = gen_net(args).to(device)
-    ckpt = torch.load('/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/netG_{}_iteration_{}.pth'.format(
-        args.dataset, args.exp, args.epoch_id, args.num_iters), map_location=device)
+
+    #ckpt = torch.load('/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/netG_{}_iteration_{}.pth'.format(
+    #    args.dataset, args.exp, args.epoch_id, args.num_iters), map_location=device)
+    ckpt = torch.load('/content/gdrive/MyDrive/srwavediff/saved_info/srwavediff/{}/{}/netG_{}.pth'.format(
+        args.dataset, args.exp, args.epoch_id), map_location=device)
 
     # loading weights from ddp in single gpu
     for key in list(ckpt.keys()):
@@ -268,7 +271,7 @@ if __name__ == '__main__':
     parser.add_argument('--measure_time', action='store_true', default=False,
                         help='whether or not measure time')
     parser.add_argument('--epoch_id', type=int, default=1000)
-    parser.add_argument('--num_iters', type=int, default=1000)
+    #parser.add_argument('--num_iters', type=int, default=1000)
 
     parser.add_argument('--num_channels', type=int, default=12,
                         help='channel of wavelet subbands')
