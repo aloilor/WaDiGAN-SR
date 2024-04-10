@@ -1,3 +1,6 @@
+## WaDiGAN-SR: A Wavelet-based Diffusion GAN approach to Image Super-Resolution ##
+
+
 ##### Table of contents
 1. [Installation](#installation)
 2. [Dataset preparation](#dataset-preparation)
@@ -6,14 +9,11 @@
 5. [Evaluation](#evaluation)
 6. [Acknowledgments](#acknowledgments)
 
-This study introduces a wavelet-based conditional diffusion scheme to address speed limitations in Image Super-Resolution Diffusion Models. Utilizing discrete wavelet transform on both image and feature levels, it efficiently reduces training and inference times while maintaining high-fidelity output. The study focuses on Single-Image Super-Resolution, demonstrating effectiveness through experimental validation on CelebA-HQ. This approach offers a practical solution for real-time implementation, contributing to the development of efficient diffusion models in image super-resolution.
+In recent years, Diffusion Models have emerged as a superior alternative to Generative Adversarial Networks (GANs) for high-fidelity image generation, with wide applications in text-to-image generation, image-to-image translation, and super-resolution. However, their real-time feasibility is hindered by slow training and inference speeds. This study addresses this challenge by proposing a wavelet-based conditional Diffusion GAN scheme for Single-Image Super-Resolution (SISR). Our approach utilizes the Diffusion GAN paradigm to reduce the number of timesteps required by the reverse diffusion process and the Discrete Wavelet Transform (DWT) to achieve dimensionality reduction, decreasing training and inference times significantly. The results of an experimental validation on the CelebA-HQ dataset confirm the effectiveness of our proposed scheme. Our approach outperforms other state-of-the-art methodologies successfully ensuring high-fidelity output while overcoming inherent drawbacks associated with diffusion models in time-sensitive applications.
 
 <p align="left">
   <img src="./assets/backward_diff_proc.png" width="700" alt="Alt Text">
 </p>
-
-
-
 
 
 ## Installation ##
@@ -39,7 +39,6 @@ Use the following script to prepare the dataset in PNG or LMDB format:
 python datasets_prep/prepare_data.py  --path [dataset root]  --out [output root] --size 16,128 -l
 ```
 
-
 Once a dataset is downloaded and prepared, please put it in `data/` directory as follows:
 ```
 data/
@@ -60,41 +59,85 @@ Note, please set argument `--exp` correspondingly for both `train` and `test` mo
 
 **GPU allocation**: Our work is experimented on a single NVIDIA Tesla T4 GPU 15GBs.
 
+
 ## Results ##
-Comparisons between our model and SR3 (both trained on 25k iteration steps) are below:
+Comparisons between our model, SR3, DiWa and ESRGAN (all of them trained on 25k iteration steps) are below:
 <table>
-  <tr>
-    <th>Metric</th>
-    <th>Ours</th>
-    <th>SR3</th>
-  </tr>
-  <tr>
-    <td>PSNR (↑)</td>
-    <td><b>23.53</b></td>
-    <td>14.65</td>
-  </tr>
-  <tr>
-    <td>SSIM (↑)</td>
-    <td><b>0.69</b></td>
-    <td>0.42</td>
-  </tr>
-  <tr>
-    <td>FID (↓)</td>
-    <td><b>48.3</b></td>
-    <td>99.4</td>
-  </tr>
-  <tr>
-    <td>Inference time (↓)</td>
-    <td><b>0.12s</b></td>
-    <td>60.3s</td>
-  </tr>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>ESRGAN</th>
+      <th>SR3</th>
+      <th>DiWa</th>
+      <th><strong>Ours</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PSNR ↑</td>
+      <td><u>21.13</u></td>
+      <td>14.65</td>
+      <td>13.68</td>
+      <td><strong>23.38</strong></td>
+    </tr>
+    <tr>
+      <td>SSIM ↑</td>
+      <td><u>0.59</u></td>
+      <td>0.42</td>
+      <td>0.13</td>
+      <td><strong>0.68</strong></td>
+    </tr>
+    <tr>
+      <td>LPIPS ↓</td>
+      <td><u>0.082</u></td>
+      <td>0.365</td>
+      <td>0.336</td>
+      <td><strong>0.061</strong></td>
+    </tr>
+    <tr>
+      <td>FID ↓</td>
+      <td><strong>20.8</strong></td>
+      <td>99.4</td>
+      <td>270</td>
+      <td><u>47.2</u></td>
+    </tr>
+  </tbody>
 </table>
 
-The checkpoint we used to compute these results is provided [here](https://drive.google.com/file/d/1wsshXObaHQhOKdJ8yk80hvZM-6s0zLHd/view?usp=sharing).
+The checkpoint we used to compute these results is provided [here]().
 
 Inference time is computed over 300 trials on a single NVIDIA Tesla T4 GPU for a batch size of 64.
 
 Downloaded pre-trained models should be put in `saved_info/srwavediff/<DATASET>/<EXP>` directory where `<DATASET>` is defined in [How to run](#how-to-run) section and `<EXP>` corresponds to the folder name of pre-trained checkpoints.
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>ESRGAN</th>
+      <th>SR3</th>
+      <th>DiWa</th>
+      <th><strong>Ours</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Runtime</td>
+      <td>0.04s</td>
+      <td>60.3s</td>
+      <td>34.7s</td>
+      <td>0.12s</td>
+    </tr>
+    <tr>
+      <td>Parameters</td>
+      <td>31M</td>
+      <td>98M</td>
+      <td>92M</td>
+      <td>57M</td>
+    </tr>
+  </tbody>
+</table>
+
 
 ## Evaluation ##
 FID, PSNR, SSIM and LPIPS are computed on the whole test-set (6000 samples).
@@ -116,6 +159,8 @@ python /benchmark/eval.py -p [result root]
 - SR3 [unofficial implementation](https://github.com/Janspiry/Image-Super-Resolution-via-Iterative-Refinement/tree/master) and [paper](https://arxiv.org/abs/2104.07636);
 - Wavelet transforms [implementation1](https://github.com/LiQiufu/WaveCNet) and [implementation2](https://github.com/fbcotter/pytorch_wavelets);
 - DiWa [paper](https://arxiv.org/abs/2304.01994);
+- ESRGAN [paper](https://arxiv.org/abs/1809.00219);
+- BasicSR [code](https://github.com/XPixelGroup/BasicSR) for its ESRGAN implementation.
 
 
 
