@@ -7,6 +7,8 @@
     <br>
     <a href="#results">Results</a> | <a href="#evaluation">Evaluation</a> | <a href="#acknowledgments">Acknowledgments</a> 
     <br>
+    <br>
+    <br>
 </div>  
 
 Accepted at [WIRN 2024](https://www.siren-neural-net.it/wirn-2024/).
