@@ -1,4 +1,4 @@
-## WaDiGAN-SR: A Wavelet Diffusion GAN for Image Super-Resolution ##
+## A Wavelet Diffusion GAN for Image Super-Resolution ##
 
 <div align="center">
     <a href="https://colab.research.google.com/drive/1EHcwoRwpzC5NTJVOe6rTPv6fN1yxSQ5X?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height="18" alt="google colab logo"></a>
