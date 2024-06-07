@@ -11,7 +11,7 @@
     <br>
 </div>  
 
-Accepted at [WIRN 2024](https://www.siren-neural-net.it/wirn-2024/).
+Accepted at [WIRN 2024](https://www.siren-neural-net.it/wirn-2024/). [Presentation](https://docs.google.com/presentation/d/1ghPN1sZSP_cNBk-WkrX7v6_NVYDQjZ2MDwBW4qKTwgs/edit?usp=sharing).
 ### Abstract ###
 In recent years, Diffusion Models have emerged as a superior alternative to Generative Adversarial Networks (GANs) for high-fidelity image generation, with wide applications in text-to-image generation, image-to-image translation, and super-resolution. However, their real-time feasibility is hindered by slow training and inference speeds. This study addresses this challenge by proposing a wavelet-based conditional Diffusion GAN scheme for Single-Image Super-Resolution (SISR). Our approach utilizes the Diffusion GAN paradigm to reduce the number of timesteps required by the reverse diffusion process and the Discrete Wavelet Transform (DWT) to achieve dimensionality reduction, decreasing training and inference times significantly. The results of an experimental validation on the CelebA-HQ dataset confirm the effectiveness of our proposed scheme. Our approach outperforms other state-of-the-art methodologies successfully ensuring high-fidelity output while overcoming inherent drawbacks associated with diffusion models in time-sensitive applications.
 
