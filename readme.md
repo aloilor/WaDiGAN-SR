@@ -1,9 +1,9 @@
 ## A Wavelet Diffusion GAN for Image Super-Resolution ##
 ![visitors](https://visitor-badge.laobi.icu/badge?page_id=aloilor/WaDiGAN-SR)
 [![Paper](https://img.shields.io/badge/arXiv-2405.02771-blue)](http://arxiv.org/abs/2410.17966)
+    <a href="https://colab.research.google.com/drive/1EHcwoRwpzC5NTJVOe6rTPv6fN1yxSQ5X?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height="18" alt="google colab logo"></a>
 
 <div align="center">
-    <a href="https://colab.research.google.com/drive/1EHcwoRwpzC5NTJVOe6rTPv6fN1yxSQ5X?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height="18" alt="google colab logo"></a>
     <br>
     <a href="#installation"> Installation </a> | <a href="#dataset-preparation"> Dataset preparation </a> | <a href="#how-to-run">How to run</a> 
     <br>
