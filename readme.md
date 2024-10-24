@@ -1,4 +1,6 @@
 ## A Wavelet Diffusion GAN for Image Super-Resolution ##
+![visitors](https://visitor-badge.laobi.icu/badge?page_id=aloilor/WaDiGAN-SR)
+[![Paper](https://img.shields.io/badge/arXiv-2405.02771-blue)](http://arxiv.org/abs/2410.17966)
 
 <div align="center">
     <a href="https://colab.research.google.com/drive/1EHcwoRwpzC5NTJVOe6rTPv6fN1yxSQ5X?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" height="18" alt="google colab logo"></a>
@@ -12,8 +14,9 @@
 </div>  
 
 Accepted at [WIRN 2024](https://www.siren-neural-net.it/wirn-2024/). [Presentation](https://docs.google.com/presentation/d/1uPNolm151zBjX64I6trNkYqEn0kgDeSPXAZwFGm5vxU/edit?usp=sharing).
-### Abstract ###
+### Abstract ### :bookmark_tabs:
 In recent years, Diffusion Models have emerged as a superior alternative to Generative Adversarial Networks (GANs) for high-fidelity image generation, with wide applications in text-to-image generation, image-to-image translation, and super-resolution. However, their real-time feasibility is hindered by slow training and inference speeds. This study addresses this challenge by proposing a wavelet-based conditional Diffusion GAN scheme for Single-Image Super-Resolution (SISR). Our approach utilizes the Diffusion GAN paradigm to reduce the number of timesteps required by the reverse diffusion process and the Discrete Wavelet Transform (DWT) to achieve dimensionality reduction, decreasing training and inference times significantly. The results of an experimental validation on the CelebA-HQ dataset confirm the effectiveness of our proposed scheme. Our approach outperforms other state-of-the-art methodologies successfully ensuring high-fidelity output while overcoming inherent drawbacks associated with diffusion models in time-sensitive applications.
+
 
 <p align="left">
   <img src="./assets/backward_diff_proc.png" width="700" alt="Alt Text">
